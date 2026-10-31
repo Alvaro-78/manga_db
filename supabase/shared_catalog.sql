@@ -14,16 +14,18 @@ alter policy "own manga tags" on public.manga_tags
 alter policy "own manga tags" on public.manga_tags rename to "admins manage manga tags";
 create policy "manga tags readable" on public.manga_tags for select to authenticated using (true);
 
--- Portadas
-alter policy "own images read" on storage.objects to authenticated
+-- Portadas. Las reglas existentes de storage.objects no se pueden modificar desde SQL
+-- (la tabla es de supabase_storage_admin), así que solo se añaden reglas nuevas:
+-- todos leen, los admins gestionan cualquier portada y unas reglas restrictivas
+-- impiden escribir a quien no sea admin.
+create policy "images readable" on storage.objects for select to authenticated
   using (bucket_id = 'manga-images');
-alter policy "own images read" on storage.objects rename to "images readable";
-alter policy "own images insert" on storage.objects to authenticated
+create policy "admins manage images" on storage.objects for all to authenticated
+  using (bucket_id = 'manga-images' and (select private.is_admin()))
   with check (bucket_id = 'manga-images' and (select private.is_admin()));
-alter policy "own images insert" on storage.objects rename to "admins insert images";
-alter policy "own images update" on storage.objects to authenticated
-  using (bucket_id = 'manga-images' and (select private.is_admin()));
-alter policy "own images update" on storage.objects rename to "admins update images";
-alter policy "own images delete" on storage.objects to authenticated
-  using (bucket_id = 'manga-images' and (select private.is_admin()));
-alter policy "own images delete" on storage.objects rename to "admins delete images";
+create policy "only admins insert images" on storage.objects as restrictive for insert to public
+  with check (bucket_id <> 'manga-images' or (select private.is_admin()));
+create policy "only admins update images" on storage.objects as restrictive for update to public
+  using (bucket_id <> 'manga-images' or (select private.is_admin()));
+create policy "only admins delete images" on storage.objects as restrictive for delete to public
+  using (bucket_id <> 'manga-images' or (select private.is_admin()));

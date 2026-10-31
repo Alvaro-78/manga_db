@@ -4,11 +4,9 @@ import { isDemo, supabase } from './lib/supabase'
 import Login from './pages/Login'
 import Library from './pages/Library'
 import MangaDetail from './pages/MangaDetail'
-import Reader from './pages/Reader'
 import AdminList from './pages/admin/AdminList'
 import AdminNewManga from './pages/admin/AdminNewManga'
 import AdminManga from './pages/admin/AdminManga'
-import AdminChapter from './pages/admin/AdminChapter'
 
 export default function App() {
   const [session, setSession] = useState(undefined)
@@ -58,11 +56,9 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Library />} />
           <Route path="/manga/:mangaId" element={<MangaDetail />} />
-          <Route path="/manga/:mangaId/capitulo/:chapterId" element={<Reader />} />
           <Route path="/admin" element={<AdminList />} />
-          <Route path="/admin/nuevo" element={<AdminNewManga user={user} />} />
-          <Route path="/admin/manga/:mangaId" element={<AdminManga user={user} />} />
-          <Route path="/admin/manga/:mangaId/capitulo/:chapterId" element={<AdminChapter user={user} />} />
+          <Route path="/admin/nuevo" element={<AdminNewManga user={user} isAdmin={role === 'admin'} />} />
+          <Route path="/admin/manga/:mangaId" element={<AdminManga user={user} isAdmin={role === 'admin'} />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>

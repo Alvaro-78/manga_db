@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { signedUrls } from '../../lib/images'
-import { deleteManga } from '../../lib/chapters'
+import { deleteManga } from '../../lib/mangas'
 
 export default function AdminList() {
   const [mangas, setMangas] = useState(null)
@@ -15,7 +15,7 @@ export default function AdminList() {
     async function load() {
       const { data, error } = await supabase
         .from('mangas')
-        .select('*, chapters(count)')
+        .select('*')
         .order('created_at', { ascending: false })
       if (cancelled) return
       if (error) return setError(error.message)
@@ -33,7 +33,7 @@ export default function AdminList() {
   }, [mangas, search])
 
   async function handleDelete(manga) {
-    if (!confirm(`¿Borrar “${manga.title}” con todos sus capítulos e imágenes?`)) return
+    if (!confirm(`¿Borrar “${manga.title}” y su portada?`)) return
     try {
       await deleteManga(manga)
       setMangas((list) => list.filter((m) => m.id !== manga.id))
@@ -66,7 +66,7 @@ export default function AdminList() {
             <div className="grow">
               <strong>{m.title}</strong>
               <div className="muted small">
-                {m.author && `${m.author} · `}{m.chapters[0]?.count ?? 0} cap. · <span className={`badge ${m.status}`}>{m.status}</span>
+                {m.author && `${m.author} · `}<span className={`badge ${m.status}`}>{m.status}</span>
               </div>
             </div>
             <div className="row actions">

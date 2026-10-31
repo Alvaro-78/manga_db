@@ -5,14 +5,12 @@
 const DEMO_USER = { id: 'demo-user', email: 'demo@mangateca.local' }
 const DEMO_SESSION = { user: DEMO_USER }
 
-const db = { mangas: [], chapters: [], pages: [], profiles: [{ id: DEMO_USER.id, email: DEMO_USER.email, role: 'admin' }] }
+const db = { mangas: [], tags: [], manga_tags: [], profiles: [{ id: DEMO_USER.id, email: DEMO_USER.email, role: 'admin' }] }
 const files = new Map() // ruta de storage → URL mostrable
 
-// Relaciones entre tablas: [tabla destino, columna de unión, tipo]
+// Relaciones entre tablas: [tabla destino, columna de unión, tipo, (tabla intermedia, columna destino)]
 const RELATIONS = {
-  mangas: { chapters: ['chapters', 'manga_id', 'many'] },
-  chapters: { pages: ['pages', 'chapter_id', 'many'], mangas: ['mangas', 'manga_id', 'one'] },
-  pages: { chapters: ['chapters', 'chapter_id', 'one'] },
+  mangas: { tags: ['tags', 'manga_id', 'through', 'manga_tags', 'tag_id'] },
 }
 
 const DEFAULTS = { mangas: { status: 'leyendo', single_volume: false, volume: null } }
@@ -46,8 +44,11 @@ function project(table, row, selectStr) {
       continue
     }
     const [, rel, inner] = m
-    const [target, key, kind] = RELATIONS[table][rel]
-    if (kind === 'many') {
+    const [target, key, kind, via, targetKey] = RELATIONS[table][rel]
+    if (kind === 'through') {
+      const ids = db[via].filter((r) => r[key] === row.id).map((r) => r[targetKey])
+      result[rel] = db[target].filter((t) => ids.includes(t.id)).map((t) => project(target, t, inner))
+    } else if (kind === 'many') {
       const children = db[target].filter((r) => r[key] === row.id)
       result[rel] = inner.trim() === 'count'
         ? [{ count: children.length }]
@@ -125,7 +126,7 @@ class Query {
 
     if (this.op === 'select' || this.returning) {
       data = data.map((r) => project(this.table, r, this.selectStr))
-      // Filtros sobre tablas relacionadas, p. ej. "chapters.manga_id".
+      // Filtros sobre tablas relacionadas, p. ej. "tags.name".
       for (const [col, value] of this.filters.filter(([c]) => c.includes('.'))) {
         const [rel, field] = col.split('.')
         data = data.filter((r) => r[rel]?.[field] === value)
@@ -146,8 +147,8 @@ class Query {
 
 function cascadeDelete(table, id) {
   db[table] = db[table].filter((r) => r.id !== id)
-  if (table === 'mangas') db.chapters.filter((c) => c.manga_id === id).forEach((c) => cascadeDelete('chapters', c.id))
-  if (table === 'chapters') db.pages = db.pages.filter((p) => p.chapter_id !== id)
+  if (table === 'mangas') db.manga_tags = db.manga_tags.filter((r) => r.manga_id !== id)
+  if (table === 'tags') db.manga_tags = db.manga_tags.filter((r) => r.tag_id !== id)
 }
 
 export function createDemoClient() {
@@ -197,15 +198,22 @@ function placeholder(label, sub, hue) {
 
 function seed() {
   if (db.mangas.length) return
+  const tagNames = ['Shōnen', 'Seinen', 'Slice of life', 'Fantasía', 'Edición especial']
+  const tagId = Object.fromEntries(tagNames.map((name) => {
+    const id = crypto.randomUUID()
+    db.tags.push({ id, name, created_at: new Date().toISOString() })
+    return [name, id]
+  }))
   const samples = [
-    { title: 'Viento de Acero', author: 'Akira Morimoto', status: 'leyendo', hue: 10, chapters: 3, volume: '1-3',
+    { title: 'Viento de Acero', author: 'Akira Morimoto', status: 'leyendo', hue: 10, volume: '1-3',
+      tags: ['Seinen', 'Fantasía'],
       description: 'Una espadachina errante recorre un imperio en ruinas buscando al hombre que destruyó su aldea.' },
-    { title: 'Café Luna', author: 'Yui Hoshino', status: 'terminado', hue: 200, chapters: 2, single_volume: true,
-      description: 'Historias tranquilas en una cafetería que solo abre de noche.' },
-    { title: 'Proyecto Órbita', author: 'Kenji Arata', status: 'pendiente', hue: 260, chapters: 1, description: null },
-    { title: 'Neón Samurái', author: 'Rei Takeda', status: 'pedido', hue: 320, chapters: 0,
-      description: 'Tomo 1 reservado en la librería.' },
-    { title: 'El Jardín Olvidado', author: null, status: 'abandonado', hue: 120, chapters: 0, description: null },
+    { title: 'Café Luna', author: 'Yui Hoshino', status: 'terminado', hue: 200, single_volume: true,
+      tags: ['Slice of life'], description: 'Historias tranquilas en una cafetería que solo abre de noche.' },
+    { title: 'Proyecto Órbita', author: 'Kenji Arata', status: 'pendiente', hue: 260, tags: ['Shōnen'], description: null },
+    { title: 'Neón Samurái', author: 'Rei Takeda', status: 'pedido', hue: 320, volume: '1',
+      tags: ['Shōnen', 'Edición especial'], description: 'Tomo 1 reservado en la librería.' },
+    { title: 'El Jardín Olvidado', author: null, status: 'abandonado', hue: 120, tags: [], description: null },
   ]
   samples.forEach((s, i) => {
     const mangaId = crypto.randomUUID()
@@ -213,23 +221,9 @@ function seed() {
     files.set(coverPath, placeholder(s.title, s.author ?? '', s.hue))
     db.mangas.push({
       id: mangaId, user_id: DEMO_USER.id, title: s.title, author: s.author, description: s.description,
-      status: s.status, single_volume: s.single_volume ?? false, volume: s.volume ?? null, cover_path: coverPath, created_at: new Date(Date.now() - i * 86400000).toISOString(),
+      status: s.status, single_volume: s.single_volume ?? false, volume: s.volume ?? null, cover_path: coverPath,
+      created_at: new Date(Date.now() - i * 86400000).toISOString(),
     })
-    for (let c = 1; c <= s.chapters; c++) {
-      const chapterId = crypto.randomUUID()
-      db.chapters.push({
-        id: chapterId, user_id: DEMO_USER.id, manga_id: mangaId, number: c,
-        title: c === 1 ? 'El comienzo' : null, notes: c === 1 ? 'Primer capítulo de ejemplo.' : null,
-        created_at: new Date().toISOString(),
-      })
-      for (let p = 1; p <= 4; p++) {
-        const path = `demo/pages/${chapterId}/${p}.svg`
-        files.set(path, placeholder(`Página ${p}`, `${s.title} · Cap. ${c}`, s.hue + p * 8))
-        db.pages.push({
-          id: crypto.randomUUID(), user_id: DEMO_USER.id, chapter_id: chapterId,
-          page_number: p, image_path: path, created_at: new Date().toISOString(),
-        })
-      }
-    }
+    s.tags.forEach((name) => db.manga_tags.push({ id: crypto.randomUUID(), manga_id: mangaId, tag_id: tagId[name] }))
   })
 }

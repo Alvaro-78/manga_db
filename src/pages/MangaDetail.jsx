@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { signedUrls } from '../lib/images'
-import { seriesLabel, volumeLabel } from '../lib/volume'
+import { byName } from '../lib/mangas'
+import { volumeLabel } from '../lib/volume'
 
 export default function MangaDetail() {
   const { mangaId } = useParams()
@@ -15,9 +16,8 @@ export default function MangaDetail() {
     async function load() {
       const { data, error } = await supabase
         .from('mangas')
-        .select('*, chapters(id, number, title, notes, pages(count))')
+        .select('*, tags(id, name)')
         .eq('id', mangaId)
-        .order('number', { referencedTable: 'chapters' })
         .single()
       if (cancelled) return
       if (error) return setError(error.message)
@@ -32,8 +32,7 @@ export default function MangaDetail() {
   if (error) return <p className="error">{error}</p>
   if (!manga) return <p className="muted">Cargando…</p>
 
-  const chapters = manga.chapters
-  const first = chapters[0]
+  const collection = volumeLabel(manga)
 
   return (
     <>
@@ -47,31 +46,19 @@ export default function MangaDetail() {
           {manga.author && <p className="muted">{manga.author}</p>}
           <div className="row">
             <span className={`badge ${manga.status}`}>{manga.status}</span>
-            {volumeLabel(manga) && <span className="muted small">{volumeLabel(manga)}</span>}
-            <span className={`badge ${manga.single_volume ? 'serie-completa' : 'serie-incompleta'}`}>{seriesLabel(manga)}</span>
+            {collection && <span className="muted small">Colección: {collection}</span>}
           </div>
+          {manga.tags.length > 0 && (
+            <div className="tag-list">
+              {[...manga.tags].sort(byName).map((t) => <span key={t.id} className="tag on">{t.name}</span>)}
+            </div>
+          )}
           {manga.description && <p className="pre">{manga.description}</p>}
           <div className="row">
-            {first && <Link to={`/manga/${manga.id}/capitulo/${first.id}`} className="button">Empezar a leer</Link>}
             <Link to={`/admin/manga/${manga.id}`} className="button ghost">Editar</Link>
           </div>
         </div>
       </section>
-
-      <h2 className="section-title">Capítulos</h2>
-      {chapters.length === 0 && <p className="muted">Sin capítulos todavía.</p>}
-      <ul className="chapter-list">
-        {chapters.map((ch) => (
-          <li key={ch.id}>
-            <Link to={`/manga/${manga.id}/capitulo/${ch.id}`} className="grow">
-              <strong>Cap. {ch.number}</strong>
-              {ch.title && <span> — {ch.title}</span>}
-              <span className="muted small"> · {ch.pages[0]?.count ?? 0} pág.</span>
-              {ch.notes && <p className="muted small pre">{ch.notes}</p>}
-            </Link>
-          </li>
-        ))}
-      </ul>
     </>
   )
 }

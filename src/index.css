@@ -76,6 +76,23 @@ label.inline { flex-direction: row; align-items: center; gap: 6px; }
 label.inline input[type='radio'] { width: auto; margin: 0; }
 input.volume-input { width: 9rem; }
 
+.tag-field { margin: 0; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; display: flex; flex-direction: column; gap: 10px; }
+.tag-field legend { padding: 0 4px; font-size: 0.9rem; font-weight: 500; }
+.tag-list { display: flex; flex-wrap: wrap; gap: 6px; }
+.tag {
+  padding: 3px 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text);
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+.tag.on { background: var(--accent); border-color: var(--accent); color: var(--accent-text); }
+span.tag { display: inline-block; }
+.tag-new { align-items: center; flex-wrap: nowrap; }
+.tag-new input { flex: 1; min-width: 0; }
+
 button {
   padding: 8px 14px;
   border: 1px solid transparent;
@@ -106,8 +123,6 @@ a.button {
 a.button.ghost { background: transparent; color: var(--text); border-color: var(--border); }
 a.button.small { padding: 4px 10px; font-size: 0.85rem; }
 .accent { color: var(--accent); font-weight: 600; }
-
-progress { width: 100%; accent-color: var(--accent); }
 
 /* ---------- Utilidades ---------- */
 
@@ -206,8 +221,6 @@ progress { width: 100%; accent-color: var(--accent); }
 .badge.pendiente { background: #fef3c7; color: #92400e; }
 .badge.pedido { background: #ede9fe; color: #5b21b6; }
 .badge.abandonado { background: #fee2e2; color: #991b1b; }
-.badge.serie-completa { background: #dcfce7; color: #166534; }
-.badge.serie-incompleta { background: #f3f4f6; color: #374151; }
 .badge.role-admin { background: #1f2937; color: #f9fafb; }
 
 /* ---------- Ficha ---------- */
@@ -216,19 +229,6 @@ progress { width: 100%; accent-color: var(--accent); }
 .detail-cover { width: 180px; aspect-ratio: 2 / 3; object-fit: cover; border-radius: var(--radius); }
 .detail .stack { flex: 1; min-width: 240px; }
 
-.chapter-list { list-style: none; padding: 0; margin: 0; }
-.chapter-list li {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  margin-bottom: 8px;
-}
-.chapter-list p { margin: 4px 0 0; }
-.section-title { margin-top: 28px; }
 
 /* ---------- Administración ---------- */
 
@@ -249,42 +249,9 @@ progress { width: 100%; accent-color: var(--accent); }
 .admin-manga { display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap; }
 .admin-manga .grow { min-width: 260px; }
 
-.page-grid {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-  gap: 12px;
-}
-.page-grid li {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  overflow: hidden;
-}
-.page-grid img, .page-grid .cover-placeholder { display: block; width: 100%; aspect-ratio: 2 / 3; object-fit: cover; }
-.page-tools { display: flex; align-items: center; justify-content: space-between; gap: 2px; padding: 4px; }
-.page-tools button { padding: 2px 8px; }
-
-/* ---------- Lector ---------- */
-
-.reader-nav {
-  display: flex;
-  justify-content: space-between;
-  padding: 12px 0;
-  font-weight: 600;
-  color: var(--accent);
-}
-
-.pages { display: flex; flex-direction: column; align-items: center; }
-.pages figure { margin: 0; width: 100%; max-width: 800px; }
-.pages img { display: block; width: 100%; height: auto; min-height: 200px; background: var(--border); }
-
 @media (max-width: 600px) {
   .hide-mobile { display: none; }
   main { padding: 12px; }
-  .pages { margin: 0 -12px; }
   .detail-cover { width: 120px; }
   .tabs { margin-left: 8px; }
   .tabs a { padding: 6px 8px; }

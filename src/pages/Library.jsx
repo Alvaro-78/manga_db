@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase'
 import { signedUrls } from '../lib/images'
 import { STATUSES } from '../lib/statuses'
 import { volumeLabel } from '../lib/volume'
+import { byName } from '../lib/mangas'
 
 export default function Library() {
   const [mangas, setMangas] = useState(null)
@@ -11,13 +12,14 @@ export default function Library() {
   const [error, setError] = useState(null)
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
+  const [tagFilter, setTagFilter] = useState('')
 
   useEffect(() => {
     let cancelled = false
     async function load() {
       const { data, error } = await supabase
         .from('mangas')
-        .select('*, chapters(count)')
+        .select('*, tags(id, name)')
         .order('title')
       if (cancelled) return
       if (error) return setError(error.message)
@@ -39,9 +41,17 @@ export default function Library() {
     return mangas.filter(
       (m) =>
         (!statusFilter || m.status === statusFilter) &&
+        (!tagFilter || m.tags.some((t) => t.id === tagFilter)) &&
         (!q || m.title.toLowerCase().includes(q) || m.author?.toLowerCase().includes(q)),
     )
-  }, [mangas, search, statusFilter])
+  }, [mangas, search, statusFilter, tagFilter])
+
+  // Tags usados en la biblioteca, para el filtro.
+  const usedTags = useMemo(() => {
+    const map = new Map()
+    for (const m of mangas ?? []) for (const t of m.tags) map.set(t.id, t)
+    return [...map.values()].sort(byName)
+  }, [mangas])
 
   return (
     <>
@@ -56,6 +66,12 @@ export default function Library() {
           <option value="">Todos</option>
           {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
         </select>
+        {usedTags.length > 0 && (
+          <select value={tagFilter} onChange={(e) => setTagFilter(e.target.value)}>
+            <option value="">Todos los tags</option>
+            {usedTags.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
+          </select>
+        )}
       </div>
 
       {error && <p className="error">{error}</p>}
@@ -79,7 +95,7 @@ export default function Library() {
               <div className="tile-body">
                 <strong>{m.title}</strong>
                 <span className="muted small">
-                  {volumeLabel(m) ? `${volumeLabel(m)} · ` : ''}{m.chapters[0]?.count ?? 0} cap. · <span className={`badge ${m.status}`}>{m.status}</span>
+                  {volumeLabel(m) && `${volumeLabel(m)} · `}<span className={`badge ${m.status}`}>{m.status}</span>
                 </span>
               </div>
             </Link>

@@ -1,6 +1,6 @@
 # Mi Mangateca
 
-Aplicación web para guardar tus mangas (fichas, capítulos, notas e imágenes) y leerlos desde cualquier dispositivo.
+Aplicación web para catalogar tus mangas (ficha, colección, tags, notas y portada) desde cualquier dispositivo.
 
 - **Frontend:** React + Vite
 - **Backend:** [Supabase](https://supabase.com): Postgres para los datos, Storage para las imágenes y Auth para el inicio de sesión. Cada usuario solo puede ver sus propios datos (Row Level Security).
@@ -9,13 +9,11 @@ Aplicación web para guardar tus mangas (fichas, capítulos, notas e imágenes) 
 
 | Zona | Ruta | Para qué |
 |------|------|----------|
-| **Biblioteca** (consulta) | `/` | Cuadrícula de mangas con buscador y filtro por estado |
-| | `/manga/:id` | Ficha del manga y lista de capítulos |
-| | `/manga/:id/capitulo/:id` | Lector con scroll vertical y navegación entre capítulos |
+| **Biblioteca** (consulta) | `/` | Cuadrícula de mangas con buscador y filtros por estado y tag |
+| | `/manga/:id` | Ficha del manga: estado, colección, tags, descripción |
 | **Administrar** | `/admin` | Lista de mangas para editar o borrar |
-| | `/admin/nuevo` | Crear un manga (título, autor, estado, descripción, portada) |
-| | `/admin/manga/:id` | Editar el manga y añadir o borrar capítulos (con sus imágenes) |
-| | `/admin/manga/:id/capitulo/:id` | Editar el capítulo y añadir, reordenar o borrar páginas |
+| | `/admin/nuevo` | Crear un manga (título, autor, estado, colección, tags, descripción, portada) |
+| | `/admin/manga/:id` | Editar o borrar el manga |
 
 ## Puesta en marcha
 
@@ -24,7 +22,7 @@ Aplicación web para guardar tus mangas (fichas, capítulos, notas e imágenes) 
 1. Crea una cuenta en <https://supabase.com> y un proyecto nuevo (el plan gratuito sirve).
 2. Abre **SQL Editor → New query**, pega el contenido de [`supabase/schema.sql`](supabase/schema.sql) y pulsa **Run**.
    Esto crea las tablas, las políticas de seguridad y el bucket privado `manga-images`.
-   Después haz lo mismo con [`supabase/roles.sql`](supabase/roles.sql) para activar los roles de usuario.
+   Después haz lo mismo, en este orden, con [`supabase/roles.sql`](supabase/roles.sql) (roles de usuario) y [`supabase/tags.sql`](supabase/tags.sql) (tags).
 3. *(Opcional)* Si no quieres confirmar el correo al registrarte: **Authentication → Sign In / Providers → Email** y desactiva "Confirm email".
 
 ### 2. Conectar la app
@@ -60,21 +58,21 @@ Para tenerla siempre disponible, publícala gratis en **Vercel** o **Netlify**:
 
 | Tabla      | Contenido                                                  |
 |------------|------------------------------------------------------------|
-| `mangas`   | título, autor, descripción, estado, portada                |
-| `chapters` | número, título, notas (pertenece a un manga)               |
-| `pages`    | número de página y ruta de la imagen (pertenece a un capítulo) |
+| `mangas`   | título, autor, descripción, estado, colección (tomo / tomos), portada |
+| `tags`     | nombre del tag (comunes a todos; solo un admin los crea)   |
+| `manga_tags` | qué tags lleva cada manga                                |
 | `profiles` | email y rol de cada cuenta: `user` o `admin` (se crea solo al registrarse) |
 
 ### Roles
 
-El primer usuario que se registra es `admin`; el resto, `user`. Cada uno puede leer su rol pero no cambiarlo; solo un admin puede cambiar roles. Por ahora el rol solo se muestra en la cabecera: no cambia qué datos ve cada usuario. Para hacer admin a alguien a mano:
+El primer usuario que se registra es `admin`; el resto, `user`. Cada uno puede leer su rol pero no cambiarlo; solo un admin puede cambiar roles. Un admin puede crear tags nuevos desde el formulario del manga; el resto solo elige entre los existentes. El rol no cambia qué mangas ve cada usuario. Para hacer admin a alguien a mano:
 
 ```sql
 update public.profiles set role = 'admin' where email = 'correo@ejemplo.com';
 ```
 
-Las imágenes se guardan en Storage bajo `<user_id>/covers/...` y `<user_id>/mangas/<manga>/<capítulo>/...`.
+Las portadas se guardan en Storage bajo `<user_id>/covers/...`.
 
 ## Límites del plan gratuito de Supabase
 
-Alrededor de 1 GB de almacenamiento de archivos y 500 MB de base de datos. Para una colección grande de capítulos escaneados quizá necesites el plan de pago o comprimir las imágenes (WebP) antes de subirlas.
+Alrededor de 1 GB de almacenamiento de archivos y 500 MB de base de datos. Para portadas es de sobra.

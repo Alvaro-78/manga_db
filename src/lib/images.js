@@ -1,6 +1,6 @@
 import { supabase, BUCKET } from './supabase'
 
-// Las URLs firmadas caducan; una hora es suficiente para una sesión de lectura.
+// Las URLs firmadas caducan; una hora es suficiente para una sesión.
 const SIGNED_URL_TTL = 60 * 60
 
 export async function uploadImage(userId, folder, file) {
@@ -29,10 +29,4 @@ export async function signedUrls(paths) {
     .createSignedUrls(list, SIGNED_URL_TTL)
   if (error) throw error
   return Object.fromEntries(data.filter((d) => d.signedUrl).map((d) => [d.path, d.signedUrl]))
-}
-
-// Orden natural por nombre de archivo, para que "2.jpg" vaya antes que "10.jpg".
-export function sortFilesNaturally(files) {
-  const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' })
-  return [...files].sort((a, b) => collator.compare(a.name, b.name))
 }

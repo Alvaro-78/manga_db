@@ -1,16 +1,19 @@
 import { useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { removeImages, uploadImage } from '../lib/images'
+import { setMangaTags } from '../lib/mangas'
 import { STATUSES } from '../lib/statuses'
+import TagPicker from './TagPicker'
 
 // Crea un manga (sin `manga`) o edita uno existente.
-export default function MangaForm({ user, manga, onSaved, onCancel }) {
+export default function MangaForm({ user, isAdmin, manga, onSaved, onCancel }) {
   const [title, setTitle] = useState(manga?.title ?? '')
   const [author, setAuthor] = useState(manga?.author ?? '')
   const [description, setDescription] = useState(manga?.description ?? '')
   const [status, setStatus] = useState(manga?.status ?? 'leyendo')
   const [singleVolume, setSingleVolume] = useState(manga?.single_volume ?? false)
   const [volume, setVolume] = useState(manga?.volume ?? '')
+  const [tagIds, setTagIds] = useState(manga?.tags?.map((t) => t.id) ?? [])
   const [cover, setCover] = useState(null)
   const [fileInputKey, setFileInputKey] = useState(0)
   const [busy, setBusy] = useState(false)
@@ -40,6 +43,7 @@ export default function MangaForm({ user, manga, onSaved, onCancel }) {
         : supabase.from('mangas').insert(fields)
       const { data, error } = await query.select().single()
       if (error) throw error
+      await setMangaTags(data.id, tagIds)
       setCover(null)
       setFileInputKey((k) => k + 1)
       onSaved(data)
@@ -70,26 +74,24 @@ export default function MangaForm({ user, manga, onSaved, onCancel }) {
         </label>
       </div>
       <fieldset className="volume-field">
-        <legend>Tomo</legend>
+        <legend>Colección</legend>
         <label className="inline">
           <input type="radio" name="volume-kind" checked={singleVolume} onChange={() => setSingleVolume(true)} />
-          Tomo único
+          Tomo
         </label>
         <label className="inline">
           <input type="radio" name="volume-kind" checked={!singleVolume} onChange={() => setSingleVolume(false)} />
-          Tomo
+          Tomos
           <input
             className="volume-input"
-            placeholder="p. ej. 3 o 1-5"
+            placeholder="p. ej. 1-5"
             value={volume}
             disabled={singleVolume}
             onChange={(e) => setVolume(e.target.value)}
           />
         </label>
-        <span className={`badge ${singleVolume ? 'serie-completa' : 'serie-incompleta'}`}>
-          {singleVolume ? 'Serie completa' : 'Serie incompleta'}
-        </span>
       </fieldset>
+      <TagPicker selected={tagIds} onChange={setTagIds} isAdmin={isAdmin} />
       <label>
         Descripción / notas
         <textarea rows={4} value={description} onChange={(e) => setDescription(e.target.value)} />

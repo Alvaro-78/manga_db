@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { signedUrls } from '../lib/images'
 import { STATUSES } from '../lib/statuses'
+import { volumeLabel } from '../lib/volume'
 
 export default function Library() {
   const [mangas, setMangas] = useState(null)
@@ -78,7 +79,7 @@ export default function Library() {
               <div className="tile-body">
                 <strong>{m.title}</strong>
                 <span className="muted small">
-                  {m.chapters[0]?.count ?? 0} cap. · <span className={`badge ${m.status}`}>{m.status}</span>
+                  {volumeLabel(m) ? `${volumeLabel(m)} · ` : ''}{m.chapters[0]?.count ?? 0} cap. · <span className={`badge ${m.status}`}>{m.status}</span>
                 </span>
               </div>
             </Link>

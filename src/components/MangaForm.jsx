@@ -9,6 +9,8 @@ export default function MangaForm({ user, manga, onSaved, onCancel }) {
   const [author, setAuthor] = useState(manga?.author ?? '')
   const [description, setDescription] = useState(manga?.description ?? '')
   const [status, setStatus] = useState(manga?.status ?? 'leyendo')
+  const [singleVolume, setSingleVolume] = useState(manga?.single_volume ?? false)
+  const [volume, setVolume] = useState(manga?.volume ?? '')
   const [cover, setCover] = useState(null)
   const [fileInputKey, setFileInputKey] = useState(0)
   const [busy, setBusy] = useState(false)
@@ -24,7 +26,15 @@ export default function MangaForm({ user, manga, onSaved, onCancel }) {
         cover_path = await uploadImage(user.id, 'covers', cover)
         if (manga?.cover_path) await removeImages([manga.cover_path])
       }
-      const fields = { title: title.trim(), author: author.trim() || null, description: description.trim() || null, status, cover_path }
+      const fields = {
+        title: title.trim(),
+        author: author.trim() || null,
+        description: description.trim() || null,
+        status,
+        single_volume: singleVolume,
+        volume: singleVolume ? null : volume.trim() || null,
+        cover_path,
+      }
       const query = manga
         ? supabase.from('mangas').update(fields).eq('id', manga.id)
         : supabase.from('mangas').insert(fields)
@@ -59,6 +69,27 @@ export default function MangaForm({ user, manga, onSaved, onCancel }) {
           </select>
         </label>
       </div>
+      <fieldset className="volume-field">
+        <legend>Tomo</legend>
+        <label className="inline">
+          <input type="radio" name="volume-kind" checked={singleVolume} onChange={() => setSingleVolume(true)} />
+          Tomo único
+        </label>
+        <label className="inline">
+          <input type="radio" name="volume-kind" checked={!singleVolume} onChange={() => setSingleVolume(false)} />
+          Tomo
+          <input
+            className="volume-input"
+            placeholder="p. ej. 3 o 1-5"
+            value={volume}
+            disabled={singleVolume}
+            onChange={(e) => setVolume(e.target.value)}
+          />
+        </label>
+        <span className={`badge ${singleVolume ? 'serie-completa' : 'serie-incompleta'}`}>
+          {singleVolume ? 'Serie completa' : 'Serie incompleta'}
+        </span>
+      </fieldset>
       <label>
         Descripción / notas
         <textarea rows={4} value={description} onChange={(e) => setDescription(e.target.value)} />

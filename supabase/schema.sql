@@ -11,7 +11,11 @@ create table if not exists public.mangas (
   status      text not null default 'leyendo'
               check (status in ('leyendo', 'pendiente', 'pedido', 'terminado', 'abandonado')),
   cover_path  text,
-  created_at  timestamptz not null default now()
+  -- Tomo: o es tomo único (serie completa) o se indica el tomo a mano (serie incompleta).
+  single_volume boolean not null default false,
+  volume        text,
+  created_at  timestamptz not null default now(),
+  constraint mangas_volume_check check (not single_volume or volume is null)
 );
 
 create table if not exists public.chapters (

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { signedUrls } from '../lib/images'
+import { seriesLabel, volumeLabel } from '../lib/volume'
 
 export default function MangaDetail() {
   const { mangaId } = useParams()
@@ -44,7 +45,11 @@ export default function MangaDetail() {
         <div className="stack">
           <h1>{manga.title}</h1>
           {manga.author && <p className="muted">{manga.author}</p>}
-          <span className={`badge ${manga.status}`}>{manga.status}</span>
+          <div className="row">
+            <span className={`badge ${manga.status}`}>{manga.status}</span>
+            {volumeLabel(manga) && <span className="muted small">{volumeLabel(manga)}</span>}
+            <span className={`badge ${manga.single_volume ? 'serie-completa' : 'serie-incompleta'}`}>{seriesLabel(manga)}</span>
+          </div>
           {manga.description && <p className="pre">{manga.description}</p>}
           <div className="row">
             {first && <Link to={`/manga/${manga.id}/capitulo/${first.id}`} className="button">Empezar a leer</Link>}

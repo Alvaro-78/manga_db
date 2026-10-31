@@ -15,7 +15,7 @@ const RELATIONS = {
   pages: { chapters: ['chapters', 'chapter_id', 'one'] },
 }
 
-const DEFAULTS = { mangas: { status: 'leyendo' } }
+const DEFAULTS = { mangas: { status: 'leyendo', single_volume: false, volume: null } }
 
 const delay = (ms = 150) => new Promise((r) => setTimeout(r, ms))
 
@@ -198,9 +198,9 @@ function placeholder(label, sub, hue) {
 function seed() {
   if (db.mangas.length) return
   const samples = [
-    { title: 'Viento de Acero', author: 'Akira Morimoto', status: 'leyendo', hue: 10, chapters: 3,
+    { title: 'Viento de Acero', author: 'Akira Morimoto', status: 'leyendo', hue: 10, chapters: 3, volume: '1-3',
       description: 'Una espadachina errante recorre un imperio en ruinas buscando al hombre que destruyó su aldea.' },
-    { title: 'Café Luna', author: 'Yui Hoshino', status: 'terminado', hue: 200, chapters: 2,
+    { title: 'Café Luna', author: 'Yui Hoshino', status: 'terminado', hue: 200, chapters: 2, single_volume: true,
       description: 'Historias tranquilas en una cafetería que solo abre de noche.' },
     { title: 'Proyecto Órbita', author: 'Kenji Arata', status: 'pendiente', hue: 260, chapters: 1, description: null },
     { title: 'Neón Samurái', author: 'Rei Takeda', status: 'pedido', hue: 320, chapters: 0,
@@ -213,7 +213,7 @@ function seed() {
     files.set(coverPath, placeholder(s.title, s.author ?? '', s.hue))
     db.mangas.push({
       id: mangaId, user_id: DEMO_USER.id, title: s.title, author: s.author, description: s.description,
-      status: s.status, cover_path: coverPath, created_at: new Date(Date.now() - i * 86400000).toISOString(),
+      status: s.status, single_volume: s.single_volume ?? false, volume: s.volume ?? null, cover_path: coverPath, created_at: new Date(Date.now() - i * 86400000).toISOString(),
     })
     for (let c = 1; c <= s.chapters; c++) {
       const chapterId = crypto.randomUUID()

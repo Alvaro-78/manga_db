@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 
 const EMPTY = { title: '', author: '', volume: '', publisher: '' }
@@ -10,12 +10,22 @@ export default function Orders({ isAdmin }) {
   const [editingId, setEditingId] = useState(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(null)
+  const [search, setSearch] = useState('')
 
   useEffect(() => {
     if (!isAdmin) return
     supabase.from('orders').select('*').order('created_at', { ascending: false })
       .then(({ data, error }) => (error ? setError(error.message) : setOrders(data)))
   }, [isAdmin])
+
+  // Busca en título, autor, tomo y editorial, sin distinguir mayúsculas ni acentos.
+  const visible = useMemo(() => {
+    const q = normalize(search.trim())
+    if (!q) return orders ?? []
+    return (orders ?? []).filter((o) =>
+      [o.title, o.author, o.volume, o.publisher].some((v) => v && normalize(v).includes(q)),
+    )
+  }, [orders, search])
 
   const set = (field) => (e) => setForm({ ...form, [field]: e.target.value })
 
@@ -99,9 +109,20 @@ export default function Orders({ isAdmin }) {
 
       {!orders && !error && <p className="muted">Cargando…</p>}
       {orders?.length === 0 && <p className="muted center">No hay pedidos.</p>}
+      {orders?.length > 0 && (
+        <div className="toolbar orders">
+          <input
+            type="search"
+            placeholder="Buscar por título, autor, tomo o editorial"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+      )}
+      {orders?.length > 0 && visible.length === 0 && <p className="muted center">Ningún pedido coincide con la búsqueda.</p>}
 
-      <ul className="admin-list orders">
-        {orders?.map((o) => (
+      <ul className="admin-list">
+        {visible.map((o) => (
           <li key={o.id}>
             <div className="grow order-line">
               {[
@@ -124,4 +145,8 @@ export default function Orders({ isAdmin }) {
       </ul>
     </>
   )
+}
+
+function normalize(text) {
+  return text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
 }

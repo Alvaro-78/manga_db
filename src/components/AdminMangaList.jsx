@@ -1,0 +1,153 @@
+import { useEffect, useMemo, useState } from 'react'
+import { supabase } from '../lib/supabase'
+
+const EMPTY = { title: '', author: '', volume: '', publisher: '' }
+
+// Lista sencilla de mangas (título, autor, tomo, editorial) solo para admins.
+// La usan Pedidos y Segunda mano; `table` es la tabla de Supabase y `text` los textos de la vista.
+export default function AdminMangaList({ isAdmin, table, text }) {
+  const [orders, setOrders] = useState(null)
+  const [form, setForm] = useState(EMPTY)
+  const [editingId, setEditingId] = useState(null)
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState(null)
+  const [search, setSearch] = useState('')
+
+  useEffect(() => {
+    if (!isAdmin) return
+    supabase.from(table).select('*').order('created_at', { ascending: false })
+      .then(({ data, error }) => (error ? setError(error.message) : setOrders(data)))
+  }, [isAdmin, table])
+
+  // Busca en título, autor, tomo y editorial, sin distinguir mayúsculas ni acentos.
+  const visible = useMemo(() => {
+    const q = normalize(search.trim())
+    if (!q) return orders ?? []
+    return (orders ?? []).filter((o) =>
+      [o.title, o.author, o.volume, o.publisher].some((v) => v && normalize(v).includes(q)),
+    )
+  }, [orders, search])
+
+  const set = (field) => (e) => setForm({ ...form, [field]: e.target.value })
+
+  function startEdit(order) {
+    setEditingId(order.id)
+    setForm({
+      title: order.title,
+      author: order.author ?? '',
+      volume: order.volume ?? '',
+      publisher: order.publisher ?? '',
+    })
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  function cancel() {
+    setEditingId(null)
+    setForm(EMPTY)
+  }
+
+  async function submit(e) {
+    e.preventDefault()
+    setBusy(true)
+    setError(null)
+    const fields = {
+      title: form.title.trim(),
+      author: form.author.trim() || null,
+      volume: form.volume.trim() || null,
+      publisher: form.publisher.trim() || null,
+    }
+    const query = editingId
+      ? supabase.from(table).update(fields).eq('id', editingId)
+      : supabase.from(table).insert(fields)
+    const { data, error } = await query.select().single()
+    setBusy(false)
+    if (error) return setError(error.message)
+    setOrders((list) => (editingId ? list.map((o) => (o.id === data.id ? data : o)) : [data, ...list]))
+    cancel()
+  }
+
+  async function remove(order) {
+    if (!confirm(`¿Quitar “${order.title}” de ${text.title.toLowerCase()}?`)) return
+    const { error } = await supabase.from(table).delete().eq('id', order.id)
+    if (error) return setError(error.message)
+    setOrders((list) => list.filter((o) => o.id !== order.id))
+    if (editingId === order.id) cancel()
+  }
+
+  if (!isAdmin) return <p className="muted">Solo un admin puede ver esta sección.</p>
+
+  return (
+    <>
+      <h1>{text.title}</h1>
+      <p className="muted small">{text.subtitle}</p>
+
+      <form onSubmit={submit} className="card stack">
+        <h2>{editingId ? `Editar ${text.item}` : `Nuevo ${text.item}`}</h2>
+        <label>
+          Título
+          <input required value={form.title} onChange={set('title')} />
+        </label>
+        <div className="row">
+          <label className="grow">
+            Autor
+            <input value={form.author} onChange={set('author')} />
+          </label>
+          <label>
+            Tomo
+            <input className="volume-input" placeholder="p. ej. 3" value={form.volume} onChange={set('volume')} />
+          </label>
+        </div>
+        <label>
+          Editorial
+          <input value={form.publisher} onChange={set('publisher')} />
+        </label>
+        {error && <p className="error">{error}</p>}
+        <div className="row end">
+          {editingId && <button type="button" className="ghost" onClick={cancel} disabled={busy}>Cancelar</button>}
+          <button disabled={busy}>{busy ? 'Guardando…' : editingId ? 'Guardar' : `+ Añadir ${text.item}`}</button>
+        </div>
+      </form>
+
+      {!orders && !error && <p className="muted">Cargando…</p>}
+      {orders?.length === 0 && <p className="muted center">{text.empty}</p>}
+      {orders?.length > 0 && (
+        <div className="toolbar orders">
+          <input
+            type="search"
+            placeholder="Buscar por título, autor, tomo o editorial"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+      )}
+      {orders?.length > 0 && visible.length === 0 && <p className="muted center">Nada coincide con la búsqueda.</p>}
+
+      <ul className="admin-list">
+        {visible.map((o) => (
+          <li key={o.id}>
+            <div className="grow order-line">
+              {[
+                ['Título', o.title],
+                ['Autor', o.author],
+                ['Tomo', o.volume],
+                ['Editorial', o.publisher],
+              ]
+                .filter(([, value]) => value)
+                .map(([label, value]) => (
+                  <span key={label}><span className="muted">{label}:</span> {value}</span>
+                ))}
+            </div>
+            <div className="row actions">
+              <button className="ghost small" onClick={() => startEdit(o)}>Editar</button>
+              <button className="ghost danger small" onClick={() => remove(o)}>Quitar</button>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </>
+  )
+}
+
+function normalize(text) {
+  return text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+}

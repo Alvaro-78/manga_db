@@ -258,8 +258,9 @@ a.button.small { padding: 4px 10px; font-size: 0.85rem; }
   .hide-mobile { display: none; }
   main { padding: 12px; }
   .detail-cover { width: 120px; }
-  .tabs { margin-left: 8px; }
-  .tabs a { padding: 6px 8px; }
+  .topbar { flex-wrap: wrap; row-gap: 6px; }
+  .tabs { order: 3; width: 100%; margin-left: 0; overflow-x: auto; }
+  .tabs a { padding: 6px 8px; white-space: nowrap; }
   .admin-list li { flex-wrap: wrap; }
   .admin-list .actions { width: 100%; justify-content: flex-end; }
 }

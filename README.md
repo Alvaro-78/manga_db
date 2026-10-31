@@ -16,6 +16,7 @@ Aplicación web para catalogar tus mangas (ficha, colección, tags, notas y port
 | | `/admin/manga/:id` | Editar o borrar el manga |
 | | `/admin/tags` | Crear, renombrar y borrar tags (solo admins) |
 | **Pedidos** | `/pedidos` | Mangas pedidos a tiendas: título, autor, tomo, editorial (solo admins) |
+| **Segunda mano** | `/segunda-mano` | Igual que Pedidos, para mangas de segunda mano (solo admins) |
 
 ## Puesta en marcha
 
@@ -64,6 +65,7 @@ Para tenerla siempre disponible, publícala gratis en **Vercel** o **Netlify**:
 | `tags`     | nombre del tag (comunes a todos; solo un admin los crea)   |
 | `manga_tags` | qué tags lleva cada manga                                |
 | `orders`   | pedidos a tiendas: título, autor, tomo, editorial (solo admins) |
+| `second_hand` | mangas de segunda mano, mismos campos (solo admins) |
 | `profiles` | email y rol de cada cuenta: `user` o `admin` (se crea solo al registrarse) |
 
 ### Roles

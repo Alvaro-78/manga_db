@@ -5,7 +5,7 @@
 const DEMO_USER = { id: 'demo-user', email: 'demo@mangateca.local' }
 const DEMO_SESSION = { user: DEMO_USER }
 
-const db = { mangas: [], chapters: [], pages: [] }
+const db = { mangas: [], chapters: [], pages: [], profiles: [{ id: DEMO_USER.id, email: DEMO_USER.email, role: 'admin' }] }
 const files = new Map() // ruta de storage → URL mostrable
 
 // Relaciones entre tablas: [tabla destino, columna de unión, tipo]

@@ -12,12 +12,22 @@ import AdminChapter from './pages/admin/AdminChapter'
 
 export default function App() {
   const [session, setSession] = useState(undefined)
+  const [profile, setProfile] = useState(null)
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session))
     const { data } = supabase.auth.onAuthStateChange((_event, s) => setSession(s))
     return () => data.subscription.unsubscribe()
   }, [])
+
+  // Rol del usuario ('user' o 'admin'), guardado en la tabla profiles.
+  const userId = session?.user.id
+  useEffect(() => {
+    if (!userId) return
+    supabase.from('profiles').select('id, role').eq('id', userId).single()
+      .then(({ data }) => setProfile(data))
+  }, [userId])
+  const role = profile && profile.id === userId ? profile.role : null
 
   if (session === undefined) return <p className="center muted">Cargando…</p>
   if (!session) return <Login />
@@ -34,6 +44,7 @@ export default function App() {
         </nav>
         <div className="topbar-right">
           <span className="muted small hide-mobile">{user.email}</span>
+          {role === 'admin' && <span className="badge role-admin">Admin</span>}
           <button className="ghost" onClick={() => supabase.auth.signOut()}>Salir</button>
         </div>
       </header>

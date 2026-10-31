@@ -24,6 +24,7 @@ Aplicación web para guardar tus mangas (fichas, capítulos, notas e imágenes) 
 1. Crea una cuenta en <https://supabase.com> y un proyecto nuevo (el plan gratuito sirve).
 2. Abre **SQL Editor → New query**, pega el contenido de [`supabase/schema.sql`](supabase/schema.sql) y pulsa **Run**.
    Esto crea las tablas, las políticas de seguridad y el bucket privado `manga-images`.
+   Después haz lo mismo con [`supabase/roles.sql`](supabase/roles.sql) para activar los roles de usuario.
 3. *(Opcional)* Si no quieres confirmar el correo al registrarte: **Authentication → Sign In / Providers → Email** y desactiva "Confirm email".
 
 ### 2. Conectar la app
@@ -62,6 +63,15 @@ Para tenerla siempre disponible, publícala gratis en **Vercel** o **Netlify**:
 | `mangas`   | título, autor, descripción, estado, portada                |
 | `chapters` | número, título, notas (pertenece a un manga)               |
 | `pages`    | número de página y ruta de la imagen (pertenece a un capítulo) |
+| `profiles` | email y rol de cada cuenta: `user` o `admin` (se crea solo al registrarse) |
+
+### Roles
+
+El primer usuario que se registra es `admin`; el resto, `user`. Cada uno puede leer su rol pero no cambiarlo; solo un admin puede cambiar roles. Por ahora el rol solo se muestra en la cabecera: no cambia qué datos ve cada usuario. Para hacer admin a alguien a mano:
+
+```sql
+update public.profiles set role = 'admin' where email = 'correo@ejemplo.com';
+```
 
 Las imágenes se guardan en Storage bajo `<user_id>/covers/...` y `<user_id>/mangas/<manga>/<capítulo>/...`.
 

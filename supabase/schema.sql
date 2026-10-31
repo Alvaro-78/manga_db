@@ -9,7 +9,7 @@ create table if not exists public.mangas (
   author      text,
   description text,
   status      text not null default 'leyendo'
-              check (status in ('leyendo', 'pendiente', 'pedido', 'terminado', 'abandonado')),
+              check (status in ('leyendo', 'pendiente', 'terminado', 'abandonado')),
   cover_path  text,
   -- Colección: un solo tomo (single_volume) o varios tomos, con el detalle escrito a mano (volume).
   single_volume boolean not null default false,

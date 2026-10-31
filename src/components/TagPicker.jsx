@@ -1,20 +1,19 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { supabase } from '../lib/supabase'
-import { byName, toCamelCase } from '../lib/mangas'
+import { byName } from '../lib/mangas'
+import { createTag, loadTags } from '../lib/tags'
+import CamelHint from './CamelHint'
+import TagManager from './TagManager'
 
-// Elige los tags de un manga. Un admin puede además crear tags nuevos.
+// Elige los tags de un manga. Un admin puede además crear, renombrar y borrar tags aquí mismo.
 export default function TagPicker({ selected, onChange, isAdmin }) {
   const [tags, setTags] = useState([])
+  const [managing, setManaging] = useState(false)
   const [newTag, setNewTag] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(null)
 
   useEffect(() => {
-    supabase.from('tags').select('id, name').then(({ data, error }) => {
-      if (error) setError(error.message)
-      else setTags([...data].sort(byName))
-    })
+    loadTags().then(setTags, (err) => setError(err.message))
   }, [])
 
   function toggle(id) {
@@ -22,58 +21,67 @@ export default function TagPicker({ selected, onChange, isAdmin }) {
   }
 
   async function create() {
-    const name = toCamelCase(newTag)
-    if (!name) return
-    const existing = tags.find((t) => t.name.toLowerCase() === name.toLowerCase())
-    if (existing) {
-      if (!selected.includes(existing.id)) onChange([...selected, existing.id])
-      setNewTag('')
-      return
-    }
+    if (!newTag.trim()) return
     setBusy(true)
     setError(null)
-    const { data, error } = await supabase.from('tags').insert({ name }).select('id, name').single()
-    setBusy(false)
-    if (error) return setError(error.message)
-    setTags((list) => [...list, data].sort(byName))
-    onChange([...selected, data.id])
-    setNewTag('')
+    try {
+      const tag = await createTag(newTag)
+      setTags((list) => [...list, tag].sort(byName))
+      onChange([...selected, tag.id])
+      setNewTag('')
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setBusy(false)
+    }
   }
 
   return (
     <fieldset className="tag-field">
       <legend>Tags</legend>
-      {tags.length === 0 && <span className="muted small">Todavía no hay tags.</span>}
-      <div className="tag-list">
-        {tags.map((t) => (
-          <button
-            key={t.id}
-            type="button"
-            className={`tag ${selected.includes(t.id) ? 'on' : ''}`}
-            aria-pressed={selected.includes(t.id)}
-            onClick={() => toggle(t.id)}
-          >
-            {t.name}
-          </button>
-        ))}
-      </div>
-      {isAdmin && (
-        <div className="row tag-new">
-          <input
-            placeholder="Nuevo tag"
-            maxLength={40}
-            value={newTag}
-            onChange={(e) => setNewTag(e.target.value)}
-            onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); create() } }}
-          />
-          <button type="button" className="ghost" onClick={create} disabled={busy || !newTag.trim()}>
-            {busy ? 'Creando…' : '+ Crear tag'}
-          </button>
-          <Link to="/admin/tags" className="small accent">Editar tags</Link>
-        </div>
+      {managing ? (
+        <TagManager
+          tags={tags}
+          onChange={setTags}
+          onDeleted={(id) => onChange(selected.filter((t) => t !== id))}
+        />
+      ) : (
+        <>
+          {tags.length === 0 && <span className="muted small">Todavía no hay tags.</span>}
+          <div className="tag-list">
+            {tags.map((t) => (
+              <button
+                key={t.id}
+                type="button"
+                className={`tag ${selected.includes(t.id) ? 'on' : ''}`}
+                aria-pressed={selected.includes(t.id)}
+                onClick={() => toggle(t.id)}
+              >
+                {t.name}
+              </button>
+            ))}
+          </div>
+        </>
       )}
-      {isAdmin && newTag.trim() && toCamelCase(newTag) !== newTag.trim() && (
-        <span className="muted small">Se guardará como <strong>{toCamelCase(newTag)}</strong></span>
+      {isAdmin && (
+        <>
+          <div className="row tag-new">
+            <input
+              placeholder="Nuevo tag"
+              maxLength={40}
+              value={newTag}
+              onChange={(e) => setNewTag(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); create() } }}
+            />
+            <button type="button" className="ghost" onClick={create} disabled={busy || !newTag.trim()}>
+              {busy ? 'Creando…' : '+ Crear tag'}
+            </button>
+            <button type="button" className="ghost" onClick={() => setManaging((m) => !m)}>
+              {managing ? 'Listo' : 'Editar tags'}
+            </button>
+          </div>
+          <CamelHint text={newTag} />
+        </>
       )}
       {error && <p className="error">{error}</p>}
     </fieldset>

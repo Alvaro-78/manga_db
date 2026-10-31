@@ -2,14 +2,17 @@ import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { signedUrls } from '../lib/images'
-import { byName } from '../lib/mangas'
+import { byName, setMangaTags } from '../lib/mangas'
+import TagPicker from '../components/TagPicker'
 import { isComplete, volumeLabel } from '../lib/volume'
 
-export default function MangaDetail() {
+export default function MangaDetail({ isAdmin }) {
   const { mangaId } = useParams()
   const [manga, setManga] = useState(null)
   const [coverUrl, setCoverUrl] = useState(null)
   const [error, setError] = useState(null)
+  const [editingTags, setEditingTags] = useState(null) // ids seleccionados mientras se editan
+  const [tagError, setTagError] = useState(null)
 
   useEffect(() => {
     let cancelled = false
@@ -29,6 +32,19 @@ export default function MangaDetail() {
     return () => { cancelled = true }
   }, [mangaId])
 
+  async function saveTags() {
+    setTagError(null)
+    try {
+      await setMangaTags(manga.id, editingTags)
+      const { data, error } = await supabase.from('mangas').select('tags(id, name)').eq('id', manga.id).single()
+      if (error) throw error
+      setManga((m) => ({ ...m, tags: data.tags }))
+      setEditingTags(null)
+    } catch (err) {
+      setTagError(err.message)
+    }
+  }
+
   if (error) return <p className="error">{error}</p>
   if (!manga) return <p className="muted">Cargando…</p>
 
@@ -47,9 +63,21 @@ export default function MangaDetail() {
             <span className="muted small">Colección: {volumeLabel(manga)}</span>
             {isComplete(manga) && <span className="badge serie-completa">Serie Completa</span>}
           </div>
-          {manga.tags.length > 0 && (
+          {editingTags ? (
+            <div className="stack">
+              <TagPicker selected={editingTags} onChange={setEditingTags} isAdmin={isAdmin} />
+              {tagError && <p className="error">{tagError}</p>}
+              <div className="row">
+                <button onClick={saveTags}>Guardar tags</button>
+                <button className="ghost" onClick={() => setEditingTags(null)}>Cancelar</button>
+              </div>
+            </div>
+          ) : (
             <div className="tag-list">
               {[...manga.tags].sort(byName).map((t) => <span key={t.id} className="tag on">{t.name}</span>)}
+              <button className="ghost small" onClick={() => setEditingTags(manga.tags.map((t) => t.id))}>
+                {manga.tags.length ? 'Editar tags' : '+ Añadir tags'}
+              </button>
             </div>
           )}
           {manga.description && <p className="pre">{manga.description}</p>}

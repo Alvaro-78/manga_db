@@ -5,7 +5,7 @@
 const DEMO_USER = { id: 'demo-user', email: 'demo@mangateca.local' }
 const DEMO_SESSION = { user: DEMO_USER }
 
-const db = { mangas: [], tags: [], manga_tags: [], profiles: [{ id: DEMO_USER.id, email: DEMO_USER.email, role: 'admin' }] }
+const db = { mangas: [], tags: [], manga_tags: [], orders: [], profiles: [{ id: DEMO_USER.id, email: DEMO_USER.email, role: 'admin' }] }
 const files = new Map() // ruta de storage → URL mostrable
 
 // Relaciones entre tablas: [tabla destino, columna de unión, tipo, (tabla intermedia, columna destino)]
@@ -211,10 +211,14 @@ function seed() {
     { title: 'Café Luna', author: 'Yui Hoshino', status: 'terminado', hue: 200, single_volume: true,
       tags: ['SliceOfLife'], description: 'Historias tranquilas en una cafetería que solo abre de noche.' },
     { title: 'Proyecto Órbita', author: 'Kenji Arata', status: 'pendiente', hue: 260, tags: ['Shōnen'], description: null },
-    { title: 'Neón Samurái', author: 'Rei Takeda', status: 'pedido', hue: 320, volume: '1',
-      tags: ['Shōnen', 'EdiciónEspecial'], description: 'Tomo 1 reservado en la librería.' },
+    { title: 'Neón Samurái', author: 'Rei Takeda', status: 'pendiente', hue: 320, volume: '1',
+      tags: ['Shōnen', 'EdiciónEspecial'], description: null },
     { title: 'El Jardín Olvidado', author: null, status: 'abandonado', hue: 120, tags: [], description: null },
   ]
+  db.orders.push(
+    { id: crypto.randomUUID(), title: 'Neón Samurái', author: 'Rei Takeda', volume: '2', publisher: 'Ivrea', created_at: new Date().toISOString() },
+    { id: crypto.randomUUID(), title: 'Café Luna', author: 'Yui Hoshino', volume: null, publisher: 'Norma', created_at: new Date(Date.now() - 86400000).toISOString() },
+  )
   samples.forEach((s, i) => {
     const mangaId = crypto.randomUUID()
     const coverPath = `demo/covers/${mangaId}.svg`

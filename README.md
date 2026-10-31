@@ -14,6 +14,8 @@ Aplicación web para catalogar tus mangas (ficha, colección, tags, notas y port
 | **Administrar** | `/admin` | Lista de mangas para editar o borrar |
 | | `/admin/nuevo` | Crear un manga (título, autor, estado, colección, tags, descripción, portada) |
 | | `/admin/manga/:id` | Editar o borrar el manga |
+| | `/admin/tags` | Crear, renombrar y borrar tags (solo admins) |
+| **Pedidos** | `/pedidos` | Mangas pedidos a tiendas: título, autor, tomo, editorial (solo admins) |
 
 ## Puesta en marcha
 
@@ -22,7 +24,7 @@ Aplicación web para catalogar tus mangas (ficha, colección, tags, notas y port
 1. Crea una cuenta en <https://supabase.com> y un proyecto nuevo (el plan gratuito sirve).
 2. Abre **SQL Editor → New query**, pega el contenido de [`supabase/schema.sql`](supabase/schema.sql) y pulsa **Run**.
    Esto crea las tablas, las políticas de seguridad y el bucket privado `manga-images`.
-   Después haz lo mismo, en este orden, con [`supabase/roles.sql`](supabase/roles.sql) (roles de usuario) y [`supabase/tags.sql`](supabase/tags.sql) (tags).
+   Después haz lo mismo, en este orden, con [`supabase/roles.sql`](supabase/roles.sql) (roles de usuario) y [`supabase/tags.sql`](supabase/tags.sql) (tags) y [`supabase/orders.sql`](supabase/orders.sql) (pedidos).
 3. *(Opcional)* Si no quieres confirmar el correo al registrarte: **Authentication → Sign In / Providers → Email** y desactiva "Confirm email".
 
 ### 2. Conectar la app
@@ -61,6 +63,7 @@ Para tenerla siempre disponible, publícala gratis en **Vercel** o **Netlify**:
 | `mangas`   | título, autor, descripción, estado, colección (tomo / tomos), portada |
 | `tags`     | nombre del tag (comunes a todos; solo un admin los crea)   |
 | `manga_tags` | qué tags lleva cada manga                                |
+| `orders`   | pedidos a tiendas: título, autor, tomo, editorial (solo admins) |
 | `profiles` | email y rol de cada cuenta: `user` o `admin` (se crea solo al registrarse) |
 
 ### Roles

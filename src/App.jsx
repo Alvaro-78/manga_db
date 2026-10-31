@@ -6,6 +6,7 @@ import Library from './pages/Library'
 import MangaDetail from './pages/MangaDetail'
 import AdminList from './pages/admin/AdminList'
 import AdminTags from './pages/admin/AdminTags'
+import Orders from './pages/admin/Orders'
 import AdminNewManga from './pages/admin/AdminNewManga'
 import AdminManga from './pages/admin/AdminManga'
 
@@ -40,6 +41,7 @@ export default function App() {
         <nav className="tabs">
           <NavLink to="/" end>Biblioteca</NavLink>
           <NavLink to="/admin">Administrar</NavLink>
+          {role === 'admin' && <NavLink to="/pedidos">Pedidos</NavLink>}
         </nav>
         <div className="topbar-right">
           <span className="muted small hide-mobile">{user.email}</span>
@@ -56,7 +58,8 @@ export default function App() {
       <main>
         <Routes>
           <Route path="/" element={<Library />} />
-          <Route path="/manga/:mangaId" element={<MangaDetail />} />
+          <Route path="/manga/:mangaId" element={<MangaDetail isAdmin={role === 'admin'} />} />
+          <Route path="/pedidos" element={<Orders isAdmin={role === 'admin'} />} />
           <Route path="/admin" element={<AdminList isAdmin={role === 'admin'} />} />
           <Route path="/admin/tags" element={<AdminTags isAdmin={role === 'admin'} />} />
           <Route path="/admin/nuevo" element={<AdminNewManga user={user} isAdmin={role === 'admin'} />} />

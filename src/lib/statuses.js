@@ -1,1 +1,1 @@
-export const STATUSES = ['leyendo', 'pendiente', 'pedido', 'terminado', 'abandonado']
+export const STATUSES = ['leyendo', 'pendiente', 'terminado', 'abandonado']

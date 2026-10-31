@@ -75,15 +75,19 @@ export default function MangaDetail({ isAdmin }) {
           ) : (
             <div className="tag-list">
               {[...manga.tags].sort(byName).map((t) => <span key={t.id} className="tag on">{t.name}</span>)}
-              <button className="ghost small" onClick={() => setEditingTags(manga.tags.map((t) => t.id))}>
-                {manga.tags.length ? 'Editar tags' : '+ Añadir tags'}
-              </button>
+              {isAdmin && (
+                <button className="ghost small" onClick={() => setEditingTags(manga.tags.map((t) => t.id))}>
+                  {manga.tags.length ? 'Editar tags' : '+ Añadir tags'}
+                </button>
+              )}
             </div>
           )}
           {manga.description && <p className="pre">{manga.description}</p>}
-          <div className="row">
-            <Link to={`/admin/manga/${manga.id}`} className="button ghost">Editar</Link>
-          </div>
+          {isAdmin && (
+            <div className="row">
+              <Link to={`/admin/manga/${manga.id}`} className="button ghost">Editar</Link>
+            </div>
+          )}
         </div>
       </section>
     </>

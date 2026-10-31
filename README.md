@@ -3,7 +3,7 @@
 Aplicación web para catalogar tus mangas (ficha, colección, tags, notas y portada) desde cualquier dispositivo.
 
 - **Frontend:** React + Vite
-- **Backend:** [Supabase](https://supabase.com): Postgres para los datos, Storage para las imágenes y Auth para el inicio de sesión. Cada usuario solo puede ver sus propios datos (Row Level Security).
+- **Backend:** [Supabase](https://supabase.com): Postgres para los datos, Storage para las imágenes y Auth para el inicio de sesión. La biblioteca es un catálogo común: todos los usuarios la ven y solo los admins la gestionan (Row Level Security).
 
 ## Vistas
 
@@ -25,7 +25,7 @@ Aplicación web para catalogar tus mangas (ficha, colección, tags, notas y port
 1. Crea una cuenta en <https://supabase.com> y un proyecto nuevo (el plan gratuito sirve).
 2. Abre **SQL Editor → New query**, pega el contenido de [`supabase/schema.sql`](supabase/schema.sql) y pulsa **Run**.
    Esto crea las tablas, las políticas de seguridad y el bucket privado `manga-images`.
-   Después haz lo mismo, en este orden, con [`supabase/roles.sql`](supabase/roles.sql) (roles de usuario) y [`supabase/tags.sql`](supabase/tags.sql) (tags) y [`supabase/orders.sql`](supabase/orders.sql) (pedidos).
+   Después haz lo mismo, en este orden, con [`supabase/roles.sql`](supabase/roles.sql) (roles de usuario) y [`supabase/tags.sql`](supabase/tags.sql) (tags) , [`supabase/orders.sql`](supabase/orders.sql) (pedidos y segunda mano) y [`supabase/shared_catalog.sql`](supabase/shared_catalog.sql) (catálogo común, solo admins escriben).
 3. *(Opcional)* Si no quieres confirmar el correo al registrarte: **Authentication → Sign In / Providers → Email** y desactiva "Confirm email".
 
 ### 2. Conectar la app
@@ -70,7 +70,7 @@ Para tenerla siempre disponible, publícala gratis en **Vercel** o **Netlify**:
 
 ### Roles
 
-El primer usuario que se registra es `admin`; el resto, `user`. Cada uno puede leer su rol pero no cambiarlo; solo un admin puede cambiar roles. Un admin puede crear tags nuevos desde el formulario del manga; el resto solo elige entre los existentes. El rol no cambia qué mangas ve cada usuario. Para hacer admin a alguien a mano:
+El primer usuario que se registra es `admin`; el resto, `user`. Cada uno puede leer su rol pero no cambiarlo; solo un admin puede cambiar roles. Un usuario normal solo ve la **Biblioteca** (y la ficha de cada manga). Todo lo demás (Administrar, Tags, Pedidos, Segunda mano) es solo para admins, tanto en la app como en los permisos de la base de datos. Para hacer admin a alguien a mano:
 
 ```sql
 update public.profiles set role = 'admin' where email = 'correo@ejemplo.com';

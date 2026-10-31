@@ -26,12 +26,15 @@ export default function App() {
   useEffect(() => {
     if (!userId) return
     supabase.from('profiles').select('id, role').eq('id', userId).single()
-      .then(({ data }) => setProfile(data))
+      // Si no se puede leer el perfil, se trata como usuario normal.
+      .then(({ data }) => setProfile(data ?? { id: userId, role: 'user' }))
   }, [userId])
-  const role = profile && profile.id === userId ? profile.role : null
+  const role = profile && profile.id === userId ? profile.role : undefined
+  const isAdmin = role === 'admin'
 
   if (session === undefined) return <p className="center muted">Cargando…</p>
   if (!session) return <Login />
+  if (role === undefined) return <p className="center muted">Cargando…</p>
 
   const user = session.user
 
@@ -41,13 +44,17 @@ export default function App() {
         <Link to="/" className="brand">Mi Mangateca</Link>
         <nav className="tabs">
           <NavLink to="/" end>Biblioteca</NavLink>
-          <NavLink to="/admin">Administrar</NavLink>
-          {role === 'admin' && <NavLink to="/pedidos">Pedidos</NavLink>}
-          {role === 'admin' && <NavLink to="/segunda-mano">Segunda mano</NavLink>}
+          {isAdmin && (
+            <>
+              <NavLink to="/admin">Administrar</NavLink>
+              <NavLink to="/pedidos">Pedidos</NavLink>
+              <NavLink to="/segunda-mano">Segunda mano</NavLink>
+            </>
+          )}
         </nav>
         <div className="topbar-right">
           <span className="muted small hide-mobile">{user.email}</span>
-          {role === 'admin' && <span className="badge role-admin">Admin</span>}
+          {isAdmin && <span className="badge role-admin">Admin</span>}
           <button className="ghost" onClick={() => supabase.auth.signOut()}>Salir</button>
         </div>
       </header>
@@ -59,14 +66,20 @@ export default function App() {
       )}
       <main>
         <Routes>
-          <Route path="/" element={<Library />} />
-          <Route path="/manga/:mangaId" element={<MangaDetail isAdmin={role === 'admin'} />} />
-          <Route path="/pedidos" element={<Orders isAdmin={role === 'admin'} />} />
-          <Route path="/segunda-mano" element={<SecondHand isAdmin={role === 'admin'} />} />
-          <Route path="/admin" element={<AdminList isAdmin={role === 'admin'} />} />
-          <Route path="/admin/tags" element={<AdminTags isAdmin={role === 'admin'} />} />
-          <Route path="/admin/nuevo" element={<AdminNewManga user={user} isAdmin={role === 'admin'} />} />
-          <Route path="/admin/manga/:mangaId" element={<AdminManga user={user} isAdmin={role === 'admin'} />} />
+          {/* Vistas para todos: la biblioteca y la ficha de cada manga */}
+          <Route path="/" element={<Library isAdmin={isAdmin} />} />
+          <Route path="/manga/:mangaId" element={<MangaDetail isAdmin={isAdmin} />} />
+          {/* Vistas solo para admins; a un usuario normal le llevan a la biblioteca */}
+          {isAdmin && (
+            <>
+              <Route path="/pedidos" element={<Orders isAdmin />} />
+              <Route path="/segunda-mano" element={<SecondHand isAdmin />} />
+              <Route path="/admin" element={<AdminList isAdmin />} />
+              <Route path="/admin/tags" element={<AdminTags isAdmin />} />
+              <Route path="/admin/nuevo" element={<AdminNewManga user={user} isAdmin />} />
+              <Route path="/admin/manga/:mangaId" element={<AdminManga user={user} isAdmin />} />
+            </>
+          )}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>

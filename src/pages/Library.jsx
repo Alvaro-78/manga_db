@@ -6,7 +6,7 @@ import { STATUSES } from '../lib/statuses'
 import { isComplete, volumeLabel } from '../lib/volume'
 import { byName } from '../lib/mangas'
 
-export default function Library() {
+export default function Library({ isAdmin }) {
   const [mangas, setMangas] = useState(null)
   const [covers, setCovers] = useState({})
   const [error, setError] = useState(null)
@@ -78,7 +78,9 @@ export default function Library() {
       {!mangas && !error && <p className="muted">Cargando…</p>}
       {mangas?.length === 0 && (
         <p className="muted center">
-          Todavía no tienes mangas. Añádelos desde <Link to="/admin/nuevo" className="accent">Administrar</Link>.
+          {isAdmin
+            ? <>Todavía no hay mangas. Añádelos desde <Link to="/admin/nuevo" className="accent">Administrar</Link>.</>
+            : 'Todavía no hay mangas en la biblioteca.'}
         </p>
       )}
       {mangas?.length > 0 && visible.length === 0 && <p className="muted center">Ningún manga coincide con la búsqueda.</p>}

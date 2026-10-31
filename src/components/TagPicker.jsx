@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
-import { byName } from '../lib/mangas'
+import { byName, toCamelCase } from '../lib/mangas'
 
 // Elige los tags de un manga. Un admin puede además crear tags nuevos.
 export default function TagPicker({ selected, onChange, isAdmin }) {
@@ -22,7 +22,7 @@ export default function TagPicker({ selected, onChange, isAdmin }) {
   }
 
   async function create() {
-    const name = newTag.trim()
+    const name = toCamelCase(newTag)
     if (!name) return
     const existing = tags.find((t) => t.name.toLowerCase() === name.toLowerCase())
     if (existing) {
@@ -71,6 +71,9 @@ export default function TagPicker({ selected, onChange, isAdmin }) {
           </button>
           <Link to="/admin/tags" className="small accent">Editar tags</Link>
         </div>
+      )}
+      {isAdmin && newTag.trim() && toCamelCase(newTag) !== newTag.trim() && (
+        <span className="muted small">Se guardará como <strong>{toCamelCase(newTag)}</strong></span>
       )}
       {error && <p className="error">{error}</p>}
     </fieldset>

@@ -28,3 +28,23 @@ alter table public.manga_tags enable row level security;
 create policy "own manga tags" on public.manga_tags for all to authenticated
   using (exists (select 1 from public.mangas m where m.id = manga_id and m.user_id = (select auth.uid())))
   with check (exists (select 1 from public.mangas m where m.id = manga_id and m.user_id = (select auth.uid())));
+
+-- Los nombres se guardan en CamelCase: "slice of life" → "SliceOfLife".
+create or replace function private.tag_camel_case()
+returns trigger
+language plpgsql
+set search_path = ''
+as $$
+begin
+  new.name := (
+    select string_agg(upper(left(w, 1)) || substr(w, 2), '' order by ord)
+    from regexp_split_to_table(trim(new.name), '[\s_-]+') with ordinality as t(w, ord)
+    where w <> ''
+  );
+  return new;
+end;
+$$;
+
+create trigger tags_camel_case
+  before insert or update of name on public.tags
+  for each row execute function private.tag_camel_case();

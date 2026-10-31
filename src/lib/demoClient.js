@@ -198,7 +198,7 @@ function placeholder(label, sub, hue) {
 
 function seed() {
   if (db.mangas.length) return
-  const tagNames = ['Shōnen', 'Seinen', 'Slice of life', 'Fantasía', 'Edición especial']
+  const tagNames = ['Shōnen', 'Seinen', 'SliceOfLife', 'Fantasía', 'EdiciónEspecial']
   const tagId = Object.fromEntries(tagNames.map((name) => {
     const id = crypto.randomUUID()
     db.tags.push({ id, name, created_at: new Date().toISOString() })
@@ -209,10 +209,10 @@ function seed() {
       tags: ['Seinen', 'Fantasía'],
       description: 'Una espadachina errante recorre un imperio en ruinas buscando al hombre que destruyó su aldea.' },
     { title: 'Café Luna', author: 'Yui Hoshino', status: 'terminado', hue: 200, single_volume: true,
-      tags: ['Slice of life'], description: 'Historias tranquilas en una cafetería que solo abre de noche.' },
+      tags: ['SliceOfLife'], description: 'Historias tranquilas en una cafetería que solo abre de noche.' },
     { title: 'Proyecto Órbita', author: 'Kenji Arata', status: 'pendiente', hue: 260, tags: ['Shōnen'], description: null },
     { title: 'Neón Samurái', author: 'Rei Takeda', status: 'pedido', hue: 320, volume: '1',
-      tags: ['Shōnen', 'Edición especial'], description: 'Tomo 1 reservado en la librería.' },
+      tags: ['Shōnen', 'EdiciónEspecial'], description: 'Tomo 1 reservado en la librería.' },
     { title: 'El Jardín Olvidado', author: null, status: 'abandonado', hue: 120, tags: [], description: null },
   ]
   samples.forEach((s, i) => {

@@ -20,3 +20,7 @@ export async function setMangaTags(mangaId, tagIds) {
 }
 
 export const byName = (a, b) => a.name.localeCompare(b.name, 'es', { sensitivity: 'base' })
+
+// Los tags se guardan en CamelCase: "slice of life" → "SliceOfLife" (la base de datos aplica la misma regla).
+export const toCamelCase = (text) =>
+  text.trim().split(/[\s_-]+/).filter(Boolean).map((w) => w[0].toUpperCase() + w.slice(1)).join('')

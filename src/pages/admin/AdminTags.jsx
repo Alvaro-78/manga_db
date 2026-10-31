@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
-import { byName } from '../../lib/mangas'
+import { byName, toCamelCase } from '../../lib/mangas'
 
 // Gestión de tags (solo admins): crear, renombrar y borrar.
 export default function AdminTags({ isAdmin }) {
@@ -19,7 +19,7 @@ export default function AdminTags({ isAdmin }) {
 
   async function create(e) {
     e.preventDefault()
-    const name = newTag.trim()
+    const name = toCamelCase(newTag)
     if (!name) return
     setError(null)
     const { data, error } = await supabase.from('tags').insert({ name }).select('id, name').single()
@@ -30,7 +30,7 @@ export default function AdminTags({ isAdmin }) {
 
   async function rename(e) {
     e.preventDefault()
-    const name = editing.name.trim()
+    const name = toCamelCase(editing.name)
     if (!name) return
     setError(null)
     const { error } = await supabase.from('tags').update({ name }).eq('id', editing.id)
@@ -58,6 +58,7 @@ export default function AdminTags({ isAdmin }) {
         <input placeholder="Nuevo tag" maxLength={40} value={newTag} onChange={(e) => setNewTag(e.target.value)} />
         <button disabled={!newTag.trim()}>+ Crear tag</button>
       </form>
+      <CamelHint text={newTag} />
 
       {error && <p className="error">{error}</p>}
       {!tags && !error && <p className="muted">Cargando…</p>}
@@ -76,6 +77,7 @@ export default function AdminTags({ isAdmin }) {
                 />
                 <button disabled={!editing.name.trim()}>Guardar</button>
                 <button type="button" className="ghost" onClick={() => setEditing(null)}>Cancelar</button>
+                <CamelHint text={editing.name} />
               </form>
             ) : (
               <>
@@ -91,6 +93,12 @@ export default function AdminTags({ isAdmin }) {
       </ul>
     </>
   )
+}
+
+function CamelHint({ text }) {
+  const camel = toCamelCase(text)
+  if (!text.trim() || camel === text.trim()) return null
+  return <p className="muted small">Se guardará como <strong>{camel}</strong></p>
 }
 
 function friendly(error) {

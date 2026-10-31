@@ -1,0 +1,235 @@
+// Cliente falso en memoria que imita la parte de la API de Supabase que usa la app.
+// Se activa cuando no hay .env.local, para poder ver la interfaz sin backend.
+// Los datos se pierden al recargar la página.
+
+const DEMO_USER = { id: 'demo-user', email: 'demo@mangateca.local' }
+const DEMO_SESSION = { user: DEMO_USER }
+
+const db = { mangas: [], chapters: [], pages: [] }
+const files = new Map() // ruta de storage → URL mostrable
+
+// Relaciones entre tablas: [tabla destino, columna de unión, tipo]
+const RELATIONS = {
+  mangas: { chapters: ['chapters', 'manga_id', 'many'] },
+  chapters: { pages: ['pages', 'chapter_id', 'many'], mangas: ['mangas', 'manga_id', 'one'] },
+  pages: { chapters: ['chapters', 'chapter_id', 'one'] },
+}
+
+const DEFAULTS = { mangas: { status: 'leyendo' } }
+
+const delay = (ms = 150) => new Promise((r) => setTimeout(r, ms))
+
+// Divide "a, b(c, d(e)), f" respetando paréntesis.
+function splitTop(str) {
+  const out = []
+  let depth = 0
+  let cur = ''
+  for (const ch of str) {
+    if (ch === '(') depth++
+    if (ch === ')') depth--
+    if (ch === ',' && depth === 0) {
+      out.push(cur.trim())
+      cur = ''
+    } else cur += ch
+  }
+  if (cur.trim()) out.push(cur.trim())
+  return out
+}
+
+function project(table, row, selectStr) {
+  const result = {}
+  for (const token of splitTop(selectStr || '*')) {
+    const m = token.match(/^(\w+)(?:!\w+)?\((.*)\)$/s)
+    if (!m) {
+      if (token === '*') Object.assign(result, row)
+      else result[token] = row[token]
+      continue
+    }
+    const [, rel, inner] = m
+    const [target, key, kind] = RELATIONS[table][rel]
+    if (kind === 'many') {
+      const children = db[target].filter((r) => r[key] === row.id)
+      result[rel] = inner.trim() === 'count'
+        ? [{ count: children.length }]
+        : children.map((c) => project(target, c, inner))
+    } else {
+      const parent = db[target].find((r) => r.id === row[key])
+      result[rel] = parent ? project(target, parent, inner) : null
+    }
+  }
+  return result
+}
+
+function compare(a, b, col, ascending) {
+  const x = a[col]
+  const y = b[col]
+  const n = typeof x === 'number' || !isNaN(Number(x)) && !isNaN(Number(y))
+  const diff = n ? Number(x) - Number(y) : String(x).localeCompare(String(y))
+  return ascending ? diff : -diff
+}
+
+class Query {
+  constructor(table) {
+    this.table = table
+    this.op = 'select'
+    this.selectStr = '*'
+    this.filters = []
+    this.orders = []
+    this.isSingle = false
+    this.returning = false
+  }
+
+  select(str = '*') {
+    if (this.op === 'select') this.selectStr = str
+    else { this.returning = true; this.selectStr = str }
+    return this
+  }
+  insert(payload) { this.op = 'insert'; this.payload = payload; return this }
+  update(payload) { this.op = 'update'; this.payload = payload; return this }
+  delete() { this.op = 'delete'; return this }
+  eq(col, value) { this.filters.push([col, value]); return this }
+  order(col, opts = {}) { this.orders.push({ col, ascending: opts.ascending ?? true, ref: opts.referencedTable }); return this }
+  single() { this.isSingle = true; return this }
+
+  then(resolve, reject) { return this.run().then(resolve, reject) }
+
+  matches(row) {
+    return this.filters.filter(([c]) => !c.includes('.')).every(([c, v]) => row[c] === v)
+  }
+
+  async run() {
+    await delay()
+    const rows = db[this.table]
+    let data
+
+    if (this.op === 'insert') {
+      const list = (Array.isArray(this.payload) ? this.payload : [this.payload]).map((p) => ({
+        id: crypto.randomUUID(),
+        user_id: DEMO_USER.id,
+        created_at: new Date().toISOString(),
+        ...DEFAULTS[this.table],
+        ...p,
+      }))
+      rows.push(...list)
+      data = list
+    } else if (this.op === 'update') {
+      data = rows.filter((r) => this.matches(r))
+      data.forEach((r) => Object.assign(r, this.payload))
+    } else if (this.op === 'delete') {
+      const removed = rows.filter((r) => this.matches(r))
+      removed.forEach((r) => cascadeDelete(this.table, r.id))
+      return { data: null, error: null }
+    } else {
+      data = rows.filter((r) => this.matches(r))
+    }
+
+    if (this.op === 'select' || this.returning) {
+      data = data.map((r) => project(this.table, r, this.selectStr))
+      // Filtros sobre tablas relacionadas, p. ej. "chapters.manga_id".
+      for (const [col, value] of this.filters.filter(([c]) => c.includes('.'))) {
+        const [rel, field] = col.split('.')
+        data = data.filter((r) => r[rel]?.[field] === value)
+      }
+      for (const { col, ascending, ref } of [...this.orders].reverse()) {
+        if (ref) data.forEach((r) => r[ref]?.sort?.((a, b) => compare(a, b, col, ascending)))
+        else data.sort((a, b) => compare(a, b, col, ascending))
+      }
+    }
+
+    if (this.isSingle) {
+      if (data.length !== 1) return { data: null, error: { message: 'No encontrado' } }
+      return { data: data[0], error: null }
+    }
+    return { data, error: null }
+  }
+}
+
+function cascadeDelete(table, id) {
+  db[table] = db[table].filter((r) => r.id !== id)
+  if (table === 'mangas') db.chapters.filter((c) => c.manga_id === id).forEach((c) => cascadeDelete('chapters', c.id))
+  if (table === 'chapters') db.pages = db.pages.filter((p) => p.chapter_id !== id)
+}
+
+export function createDemoClient() {
+  seed()
+  return {
+    from: (table) => new Query(table),
+    auth: {
+      getSession: async () => ({ data: { session: DEMO_SESSION } }),
+      onAuthStateChange: () => ({ data: { subscription: { unsubscribe() {} } } }),
+      signInWithPassword: async () => ({ data: { session: DEMO_SESSION }, error: null }),
+      signUp: async () => ({ data: { session: DEMO_SESSION }, error: null }),
+      signOut: async () => alert('En modo demo no se puede cerrar sesión.'),
+    },
+    storage: {
+      from: () => ({
+        upload: async (path, file) => {
+          await delay(250)
+          files.set(path, URL.createObjectURL(file))
+          return { data: { path }, error: null }
+        },
+        remove: async (paths) => {
+          paths.forEach((p) => files.delete(p))
+          return { data: null, error: null }
+        },
+        createSignedUrls: async (paths) => ({
+          data: paths.map((path) => ({ path, signedUrl: files.get(path) ?? null })),
+          error: null,
+        }),
+      }),
+    },
+  }
+}
+
+// ---------- Datos de ejemplo ----------
+
+function placeholder(label, sub, hue) {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="600" height="900" viewBox="0 0 600 900">
+    <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="hsl(${hue},55%,45%)"/><stop offset="1" stop-color="hsl(${hue + 40},60%,25%)"/>
+    </linearGradient></defs>
+    <rect width="600" height="900" fill="url(#g)"/>
+    <text x="300" y="440" text-anchor="middle" font-family="system-ui,sans-serif" font-size="56" font-weight="800" fill="white">${label}</text>
+    <text x="300" y="510" text-anchor="middle" font-family="system-ui,sans-serif" font-size="30" fill="rgba(255,255,255,.75)">${sub}</text>
+  </svg>`
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`
+}
+
+function seed() {
+  if (db.mangas.length) return
+  const samples = [
+    { title: 'Viento de Acero', author: 'Akira Morimoto', status: 'leyendo', hue: 10, chapters: 3,
+      description: 'Una espadachina errante recorre un imperio en ruinas buscando al hombre que destruyó su aldea.' },
+    { title: 'Café Luna', author: 'Yui Hoshino', status: 'terminado', hue: 200, chapters: 2,
+      description: 'Historias tranquilas en una cafetería que solo abre de noche.' },
+    { title: 'Proyecto Órbita', author: 'Kenji Arata', status: 'pendiente', hue: 260, chapters: 1, description: null },
+    { title: 'Neón Samurái', author: 'Rei Takeda', status: 'pedido', hue: 320, chapters: 0,
+      description: 'Tomo 1 reservado en la librería.' },
+    { title: 'El Jardín Olvidado', author: null, status: 'abandonado', hue: 120, chapters: 0, description: null },
+  ]
+  samples.forEach((s, i) => {
+    const mangaId = crypto.randomUUID()
+    const coverPath = `demo/covers/${mangaId}.svg`
+    files.set(coverPath, placeholder(s.title, s.author ?? '', s.hue))
+    db.mangas.push({
+      id: mangaId, user_id: DEMO_USER.id, title: s.title, author: s.author, description: s.description,
+      status: s.status, cover_path: coverPath, created_at: new Date(Date.now() - i * 86400000).toISOString(),
+    })
+    for (let c = 1; c <= s.chapters; c++) {
+      const chapterId = crypto.randomUUID()
+      db.chapters.push({
+        id: chapterId, user_id: DEMO_USER.id, manga_id: mangaId, number: c,
+        title: c === 1 ? 'El comienzo' : null, notes: c === 1 ? 'Primer capítulo de ejemplo.' : null,
+        created_at: new Date().toISOString(),
+      })
+      for (let p = 1; p <= 4; p++) {
+        const path = `demo/pages/${chapterId}/${p}.svg`
+        files.set(path, placeholder(`Página ${p}`, `${s.title} · Cap. ${c}`, s.hue + p * 8))
+        db.pages.push({
+          id: crypto.randomUUID(), user_id: DEMO_USER.id, chapter_id: chapterId,
+          page_number: p, image_path: path, created_at: new Date().toISOString(),
+        })
+      }
+    }
+  })
+}

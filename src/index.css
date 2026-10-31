@@ -1,0 +1,289 @@
+:root {
+  --bg: #f6f5f2;
+  --surface: #ffffff;
+  --text: #1d1c1a;
+  --muted: #6b6862;
+  --border: #e2dfd8;
+  --accent: #c2410c;
+  --accent-text: #ffffff;
+  --danger: #b91c1c;
+  --ok: #15803d;
+  --radius: 10px;
+  color-scheme: light dark;
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  line-height: 1.5;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #141312;
+    --surface: #1f1e1c;
+    --text: #ecebe8;
+    --muted: #a19d95;
+    --border: #34322e;
+    --accent: #fb923c;
+    --accent-text: #1a0f05;
+    --danger: #f87171;
+    --ok: #4ade80;
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+}
+
+main {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+h1, h2 { margin: 0 0 8px; line-height: 1.2; }
+h1 { font-size: 1.6rem; }
+h2 { font-size: 1.2rem; }
+a { color: inherit; text-decoration: none; }
+code { font-size: 0.9em; background: var(--border); padding: 1px 4px; border-radius: 4px; }
+
+/* ---------- Controles ---------- */
+
+input, select, textarea, button {
+  font: inherit;
+  color: inherit;
+}
+
+input:not([type='file']), select, textarea {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+}
+
+input.num { width: 7rem; }
+
+label { display: flex; flex-direction: column; gap: 4px; font-size: 0.9rem; font-weight: 500; }
+
+button {
+  padding: 8px 14px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: var(--accent);
+  color: var(--accent-text);
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+button:disabled { opacity: 0.6; cursor: default; }
+button.ghost { background: transparent; color: var(--text); border-color: var(--border); }
+button.danger { color: var(--danger); }
+button.link { background: none; color: var(--accent); padding: 0; font-weight: 500; }
+button.small { padding: 4px 10px; font-size: 0.85rem; }
+
+/* Enlaces con aspecto de botón */
+a.button {
+  display: inline-block;
+  padding: 8px 14px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: var(--accent);
+  color: var(--accent-text);
+  font-weight: 600;
+  white-space: nowrap;
+}
+a.button.ghost { background: transparent; color: var(--text); border-color: var(--border); }
+a.button.small { padding: 4px 10px; font-size: 0.85rem; }
+.accent { color: var(--accent); font-weight: 600; }
+
+progress { width: 100%; accent-color: var(--accent); }
+
+/* ---------- Utilidades ---------- */
+
+.muted { color: var(--muted); }
+.small { font-size: 0.85rem; }
+.error { color: var(--danger); margin: 8px 0; }
+.ok { color: var(--ok); margin: 8px 0; }
+.pre { white-space: pre-wrap; }
+.center { text-align: center; margin: 48px auto; }
+.narrow { max-width: 380px; }
+.stack { display: flex; flex-direction: column; gap: 12px; }
+.row { display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; }
+.row.end { justify-content: flex-end; }
+.row.between { justify-content: space-between; align-items: center; margin: 24px 0 12px; }
+.grow { flex: 1; min-width: 0; }
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 16px;
+}
+.card.center { margin: 48px auto; text-align: left; }
+
+/* ---------- Cabecera ---------- */
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 16px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+.brand { font-weight: 800; font-size: 1.1rem; color: var(--accent); }
+.topbar-right { display: flex; gap: 12px; align-items: center; }
+
+.tabs { display: flex; gap: 4px; margin-right: auto; margin-left: 24px; }
+.tabs a { padding: 6px 12px; border-radius: 8px; color: var(--muted); font-weight: 600; }
+.tabs a.active { background: var(--bg); color: var(--text); }
+
+.back { display: inline-block; margin-bottom: 12px; color: var(--muted); }
+
+/* ---------- Biblioteca ---------- */
+
+.toolbar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+.toolbar input { flex: 1; min-width: 180px; }
+.toolbar select { width: auto; }
+
+.grid {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 16px;
+}
+
+.tile {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.tile img, .tile .cover-placeholder { width: 100%; aspect-ratio: 2 / 3; object-fit: cover; }
+.tile-body { padding: 8px 10px; display: flex; flex-direction: column; gap: 2px; }
+
+.cover-placeholder {
+  display: grid;
+  place-items: center;
+  background: var(--border);
+  color: var(--muted);
+  font-size: 2.5rem;
+  font-weight: 800;
+}
+
+.badge {
+  display: inline-block;
+  width: fit-content;
+  padding: 0 8px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: var(--border);
+  color: var(--text);
+}
+.badge.leyendo { background: #dbeafe; color: #1e40af; }
+.badge.terminado { background: #dcfce7; color: #166534; }
+.badge.pendiente { background: #fef3c7; color: #92400e; }
+.badge.pedido { background: #ede9fe; color: #5b21b6; }
+.badge.abandonado { background: #fee2e2; color: #991b1b; }
+
+/* ---------- Ficha ---------- */
+
+.detail { display: flex; gap: 20px; flex-wrap: wrap; }
+.detail-cover { width: 180px; aspect-ratio: 2 / 3; object-fit: cover; border-radius: var(--radius); }
+.detail .stack { flex: 1; min-width: 240px; }
+
+.chapter-list { list-style: none; padding: 0; margin: 0; }
+.chapter-list li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 8px;
+}
+.chapter-list p { margin: 4px 0 0; }
+.section-title { margin-top: 28px; }
+
+/* ---------- Administración ---------- */
+
+.admin-list { list-style: none; padding: 0; margin: 0; }
+.admin-list li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 8px;
+}
+.thumb { width: 48px; aspect-ratio: 2 / 3; object-fit: cover; border-radius: 6px; font-size: 1.2rem; flex-shrink: 0; }
+.actions { align-items: center; gap: 6px; flex-wrap: nowrap; }
+
+.admin-manga { display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap; }
+.admin-manga .grow { min-width: 260px; }
+
+.page-grid {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 12px;
+}
+.page-grid li {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.page-grid img, .page-grid .cover-placeholder { display: block; width: 100%; aspect-ratio: 2 / 3; object-fit: cover; }
+.page-tools { display: flex; align-items: center; justify-content: space-between; gap: 2px; padding: 4px; }
+.page-tools button { padding: 2px 8px; }
+
+/* ---------- Lector ---------- */
+
+.reader-nav {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 0;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.pages { display: flex; flex-direction: column; align-items: center; }
+.pages figure { margin: 0; width: 100%; max-width: 800px; }
+.pages img { display: block; width: 100%; height: auto; min-height: 200px; background: var(--border); }
+
+@media (max-width: 600px) {
+  .hide-mobile { display: none; }
+  main { padding: 12px; }
+  .pages { margin: 0 -12px; }
+  .detail-cover { width: 120px; }
+  .tabs { margin-left: 8px; }
+  .tabs a { padding: 6px 8px; }
+  .admin-list li { flex-wrap: wrap; }
+  .admin-list .actions { width: 100%; justify-content: flex-end; }
+}
+
+.demo-banner {
+  padding: 8px 16px;
+  background: #fef3c7;
+  color: #78350f;
+  font-size: 0.85rem;
+  text-align: center;
+}

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { byName } from '../lib/mangas'
 
@@ -68,6 +69,7 @@ export default function TagPicker({ selected, onChange, isAdmin }) {
           <button type="button" className="ghost" onClick={create} disabled={busy || !newTag.trim()}>
             {busy ? 'Creando…' : '+ Crear tag'}
           </button>
+          <Link to="/admin/tags" className="small accent">Editar tags</Link>
         </div>
       )}
       {error && <p className="error">{error}</p>}

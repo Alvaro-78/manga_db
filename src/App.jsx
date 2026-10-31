@@ -5,6 +5,7 @@ import Login from './pages/Login'
 import Library from './pages/Library'
 import MangaDetail from './pages/MangaDetail'
 import AdminList from './pages/admin/AdminList'
+import AdminTags from './pages/admin/AdminTags'
 import AdminNewManga from './pages/admin/AdminNewManga'
 import AdminManga from './pages/admin/AdminManga'
 
@@ -56,7 +57,8 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Library />} />
           <Route path="/manga/:mangaId" element={<MangaDetail />} />
-          <Route path="/admin" element={<AdminList />} />
+          <Route path="/admin" element={<AdminList isAdmin={role === 'admin'} />} />
+          <Route path="/admin/tags" element={<AdminTags isAdmin={role === 'admin'} />} />
           <Route path="/admin/nuevo" element={<AdminNewManga user={user} isAdmin={role === 'admin'} />} />
           <Route path="/admin/manga/:mangaId" element={<AdminManga user={user} isAdmin={role === 'admin'} />} />
           <Route path="*" element={<Navigate to="/" replace />} />

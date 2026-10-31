@@ -13,7 +13,7 @@ const RELATIONS = {
   mangas: { tags: ['tags', 'manga_id', 'through', 'manga_tags', 'tag_id'] },
 }
 
-const DEFAULTS = { mangas: { status: 'leyendo', single_volume: false, volume: null } }
+const DEFAULTS = { mangas: { status: 'leyendo', single_volume: false, volume: null, series_complete: false } }
 
 const delay = (ms = 150) => new Promise((r) => setTimeout(r, ms))
 
@@ -205,7 +205,7 @@ function seed() {
     return [name, id]
   }))
   const samples = [
-    { title: 'Viento de Acero', author: 'Akira Morimoto', status: 'leyendo', hue: 10, volume: '1-3',
+    { title: 'Viento de Acero', author: 'Akira Morimoto', status: 'leyendo', hue: 10, volume: '1-3', complete: true,
       tags: ['Seinen', 'Fantasía'],
       description: 'Una espadachina errante recorre un imperio en ruinas buscando al hombre que destruyó su aldea.' },
     { title: 'Café Luna', author: 'Yui Hoshino', status: 'terminado', hue: 200, single_volume: true,
@@ -221,7 +221,8 @@ function seed() {
     files.set(coverPath, placeholder(s.title, s.author ?? '', s.hue))
     db.mangas.push({
       id: mangaId, user_id: DEMO_USER.id, title: s.title, author: s.author, description: s.description,
-      status: s.status, single_volume: s.single_volume ?? false, volume: s.volume ?? null, cover_path: coverPath,
+      status: s.status, single_volume: s.single_volume ?? false, volume: s.volume ?? null,
+      series_complete: s.single_volume || s.complete || false, cover_path: coverPath,
       created_at: new Date(Date.now() - i * 86400000).toISOString(),
     })
     s.tags.forEach((name) => db.manga_tags.push({ id: crypto.randomUUID(), manga_id: mangaId, tag_id: tagId[name] }))

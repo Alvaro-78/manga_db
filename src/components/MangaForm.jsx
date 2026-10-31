@@ -13,6 +13,7 @@ export default function MangaForm({ user, isAdmin, manga, onSaved, onCancel }) {
   const [status, setStatus] = useState(manga?.status ?? 'leyendo')
   const [singleVolume, setSingleVolume] = useState(manga?.single_volume ?? false)
   const [volume, setVolume] = useState(manga?.volume ?? '')
+  const [seriesComplete, setSeriesComplete] = useState(manga?.series_complete ?? false)
   const [tagIds, setTagIds] = useState(manga?.tags?.map((t) => t.id) ?? [])
   const [cover, setCover] = useState(null)
   const [fileInputKey, setFileInputKey] = useState(0)
@@ -36,6 +37,7 @@ export default function MangaForm({ user, isAdmin, manga, onSaved, onCancel }) {
         status,
         single_volume: singleVolume,
         volume: singleVolume ? null : volume.trim() || null,
+        series_complete: singleVolume || seriesComplete,
         cover_path,
       }
       const query = manga
@@ -77,7 +79,7 @@ export default function MangaForm({ user, isAdmin, manga, onSaved, onCancel }) {
         <legend>Colección</legend>
         <label className="inline">
           <input type="radio" name="volume-kind" checked={singleVolume} onChange={() => setSingleVolume(true)} />
-          Tomo
+          Tomo Único
         </label>
         <label className="inline">
           <input type="radio" name="volume-kind" checked={!singleVolume} onChange={() => setSingleVolume(false)} />
@@ -89,6 +91,15 @@ export default function MangaForm({ user, isAdmin, manga, onSaved, onCancel }) {
             disabled={singleVolume}
             onChange={(e) => setVolume(e.target.value)}
           />
+        </label>
+        <label className="inline">
+          <input
+            type="checkbox"
+            checked={singleVolume || seriesComplete}
+            disabled={singleVolume}
+            onChange={(e) => setSeriesComplete(e.target.checked)}
+          />
+          Serie Completa
         </label>
       </fieldset>
       <TagPicker selected={tagIds} onChange={setTagIds} isAdmin={isAdmin} />

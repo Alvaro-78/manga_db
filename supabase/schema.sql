@@ -14,6 +14,7 @@ create table if not exists public.mangas (
   -- Colección: un solo tomo (single_volume) o varios tomos, con el detalle escrito a mano (volume).
   single_volume boolean not null default false,
   volume        text,
+  series_complete boolean not null default false, -- un tomo único siempre es serie completa
   created_at  timestamptz not null default now(),
   constraint mangas_volume_check check (not single_volume or volume is null)
 );

@@ -4,7 +4,7 @@ import { supabase } from '../../lib/supabase'
 import { signedUrls } from '../../lib/images'
 import { deleteManga } from '../../lib/mangas'
 
-export default function AdminList() {
+export default function AdminList({ isAdmin }) {
   const [mangas, setMangas] = useState(null)
   const [covers, setCovers] = useState({})
   const [error, setError] = useState(null)
@@ -46,7 +46,10 @@ export default function AdminList() {
     <>
       <div className="row between">
         <h1>Administrar</h1>
-        <Link to="/admin/nuevo" className="button">+ Nuevo manga</Link>
+        <div className="row">
+          {isAdmin && <Link to="/admin/tags" className="button ghost">Tags</Link>}
+          <Link to="/admin/nuevo" className="button">+ Nuevo manga</Link>
+        </div>
       </div>
 
       <div className="toolbar">

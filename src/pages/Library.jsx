@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { signedUrls } from '../lib/images'
 import { STATUSES } from '../lib/statuses'
-import { volumeLabel } from '../lib/volume'
+import { isComplete, volumeLabel } from '../lib/volume'
 import { byName } from '../lib/mangas'
 
 export default function Library() {
@@ -94,9 +94,12 @@ export default function Library() {
               )}
               <div className="tile-body">
                 <strong>{m.title}</strong>
-                <span className="muted small">
-                  {volumeLabel(m) && `${volumeLabel(m)} · `}<span className={`badge ${m.status}`}>{m.status}</span>
-                </span>
+                <span className="muted small">{volumeLabel(m)}</span>
+                <div className="tag-list small-tags">
+                  <span className={`badge ${m.status}`}>{m.status}</span>
+                  {isComplete(m) && <span className="badge serie-completa">Serie Completa</span>}
+                  {[...m.tags].sort(byName).map((t) => <span key={t.id} className="tag on">{t.name}</span>)}
+                </div>
               </div>
             </Link>
           </li>

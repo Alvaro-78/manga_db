@@ -3,7 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { signedUrls } from '../lib/images'
 import { byName } from '../lib/mangas'
-import { volumeLabel } from '../lib/volume'
+import { isComplete, volumeLabel } from '../lib/volume'
 
 export default function MangaDetail() {
   const { mangaId } = useParams()
@@ -32,8 +32,6 @@ export default function MangaDetail() {
   if (error) return <p className="error">{error}</p>
   if (!manga) return <p className="muted">Cargando…</p>
 
-  const collection = volumeLabel(manga)
-
   return (
     <>
       <Link to="/" className="back">← Biblioteca</Link>
@@ -46,7 +44,8 @@ export default function MangaDetail() {
           {manga.author && <p className="muted">{manga.author}</p>}
           <div className="row">
             <span className={`badge ${manga.status}`}>{manga.status}</span>
-            {collection && <span className="muted small">Colección: {collection}</span>}
+            <span className="muted small">Colección: {volumeLabel(manga)}</span>
+            {isComplete(manga) && <span className="badge serie-completa">Serie Completa</span>}
           </div>
           {manga.tags.length > 0 && (
             <div className="tag-list">

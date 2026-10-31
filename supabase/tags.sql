@@ -10,6 +10,7 @@ create table public.tags (
   created_at timestamptz not null default now()
 );
 create unique index tags_name_unique on public.tags (lower(trim(name)));
+create index tags_created_by_idx on public.tags (created_by);
 
 alter table public.tags enable row level security;
 create policy "tags readable" on public.tags for select to authenticated using (true);

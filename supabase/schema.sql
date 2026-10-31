@@ -25,7 +25,9 @@ create table if not exists public.mangas (
 alter table public.mangas   enable row level security;
 
 create policy "own mangas"   on public.mangas   for all
-  using (user_id = auth.uid()) with check (user_id = auth.uid());
+  using (user_id = (select auth.uid())) with check (user_id = (select auth.uid()));
+
+create index if not exists mangas_user_idx on public.mangas (user_id);
 
 -- ---------- Storage: bucket privado para las imágenes ----------
 -- Las rutas tienen la forma <user_id>/..., así que la primera carpeta identifica al dueño.

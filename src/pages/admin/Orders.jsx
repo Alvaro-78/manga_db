@@ -103,12 +103,17 @@ export default function Orders({ isAdmin }) {
       <ul className="admin-list orders">
         {orders?.map((o) => (
           <li key={o.id}>
-            <div className="grow">
-              <strong>{o.title}</strong>
-              {o.volume && <span> · Tomo {o.volume}</span>}
-              <div className="muted small">
-                {[o.author, o.publisher].filter(Boolean).join(' · ') || '—'}
-              </div>
+            <div className="grow order-line">
+              {[
+                ['Título', o.title],
+                ['Autor', o.author],
+                ['Tomo', o.volume],
+                ['Editorial', o.publisher],
+              ]
+                .filter(([, value]) => value)
+                .map(([label, value]) => (
+                  <span key={label}><span className="muted">{label}:</span> {value}</span>
+                ))}
             </div>
             <div className="row actions">
               <button className="ghost small" onClick={() => startEdit(o)}>Editar</button>

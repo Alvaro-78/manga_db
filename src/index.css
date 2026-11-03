@@ -125,6 +125,9 @@ span.tag { display: inline-block; }
   color: hsl(var(--tag-hue) var(--tag-sat) var(--tag-fg-l));
 }
 .small-tags { gap: 4px; margin-top: 4px; }
+/* Línea que separa estado/colección (arriba) de los tags (abajo). */
+.tags-divided { border-top: 1px solid var(--border); padding-top: 8px; margin-top: 4px; }
+.small-tags.tags-divided { padding-top: 6px; margin-top: 6px; }
 .small-tags .tag { font-size: 0.7rem; padding: 1px 7px; }
 .small-tags .badge { font-size: 0.62rem; padding: 1px 5px; }
 .tag-new { align-items: center; flex-wrap: nowrap; }

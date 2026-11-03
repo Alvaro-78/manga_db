@@ -101,7 +101,7 @@ export default function MangaDetail({ isAdmin, userId }) {
           </div>
           {ratingError && <p className="error">{ratingError}</p>}
           {editingTags ? (
-            <div className="stack">
+            <div className="stack tags-divided">
               <TagPicker selected={editingTags} onChange={setEditingTags} isAdmin={isAdmin} />
               {tagError && <p className="error">{tagError}</p>}
               <div className="row">
@@ -110,7 +110,7 @@ export default function MangaDetail({ isAdmin, userId }) {
               </div>
             </div>
           ) : (
-            <div className="tag-list">
+            <div className="tag-list tags-divided">
               {[...manga.tags].sort(byName).map((t) => <span key={t.id} className="tag on colored" style={tagStyle(t)}>{t.name}</span>)}
               {isAdmin && (
                 <button className="ghost small" onClick={() => setEditingTags(manga.tags.map((t) => t.id))}>

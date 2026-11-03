@@ -102,8 +102,12 @@ export default function Library({ isAdmin, userId }) {
                 <TileRating ratings={m.manga_ratings} userId={userId} />
                 <div className="tag-list small-tags">
                   <MangaBadges manga={m} />
-                  {[...m.tags].sort(byName).map((t) => <span key={t.id} className="tag on colored" style={tagStyle(t)}>{t.name}</span>)}
                 </div>
+                {m.tags.length > 0 && (
+                  <div className="tag-list small-tags tags-divided">
+                    {[...m.tags].sort(byName).map((t) => <span key={t.id} className="tag on colored" style={tagStyle(t)}>{t.name}</span>)}
+                  </div>
+                )}
               </div>
             </Link>
           </li>

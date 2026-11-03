@@ -10,7 +10,7 @@ Aplicación web para catalogar tus mangas (ficha, colección, tags, notas y port
 | Zona | Ruta | Para qué |
 |------|------|----------|
 | **Biblioteca** (consulta) | `/` | Cuadrícula de mangas con buscador y filtros por estado y tag |
-| | `/manga/:id` | Ficha del manga: estado, colección, tags, descripción y puntuación (cada usuario pone de 1 a 5 estrellas; se muestra la media) |
+| | `/manga/:id` | Ficha del manga: estado, colección, tags, descripción y puntuación (cada usuario pone de 1 a 5 estrellas; se muestra la media). Cada usuario puede añadir sus notas personales, que solo ve él |
 | **Administrar** | `/admin` | Lista de mangas para editar o borrar |
 | | `/admin/nuevo` | Crear un manga (título, autor, estado, colección, tags, descripción, portada) |
 | | `/admin/manga/:id` | Editar o borrar el manga |
@@ -25,7 +25,7 @@ Aplicación web para catalogar tus mangas (ficha, colección, tags, notas y port
 1. Crea una cuenta en <https://supabase.com> y un proyecto nuevo (el plan gratuito sirve).
 2. Abre **SQL Editor → New query**, pega el contenido de [`supabase/schema.sql`](supabase/schema.sql) y pulsa **Run**.
    Esto crea las tablas, las políticas de seguridad y el bucket privado `manga-images`.
-   Después haz lo mismo, en este orden, con [`supabase/roles.sql`](supabase/roles.sql) (roles de usuario) y [`supabase/tags.sql`](supabase/tags.sql) (tags) , [`supabase/orders.sql`](supabase/orders.sql) (pedidos y segunda mano) [`supabase/shared_catalog.sql`](supabase/shared_catalog.sql) (catálogo común, solo admins escriben) [`supabase/ratings.sql`](supabase/ratings.sql) (puntuación con estrellas) y [`supabase/tag_colors.sql`](supabase/tag_colors.sql) (un color distinto para cada tag).
+   Después haz lo mismo, en este orden, con [`supabase/roles.sql`](supabase/roles.sql) (roles de usuario) y [`supabase/tags.sql`](supabase/tags.sql) (tags) , [`supabase/orders.sql`](supabase/orders.sql) (pedidos y segunda mano) [`supabase/shared_catalog.sql`](supabase/shared_catalog.sql) (catálogo común, solo admins escriben) [`supabase/ratings.sql`](supabase/ratings.sql) (puntuación con estrellas) [`supabase/tag_colors.sql`](supabase/tag_colors.sql) (un color distinto para cada tag) y [`supabase/notes.sql`](supabase/notes.sql) (notas personales).
 3. *(Opcional)* Si no quieres confirmar el correo al registrarte: **Authentication → Sign In / Providers → Email** y desactiva "Confirm email".
 
 ### 2. Conectar la app

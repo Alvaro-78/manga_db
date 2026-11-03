@@ -7,6 +7,7 @@ import TagPicker from '../components/TagPicker'
 import { isComplete, volumeLabel } from '../lib/volume'
 import { formatAvg, ratingSummary, setRating } from '../lib/ratings'
 import StarRating from '../components/StarRating'
+import MyNotes from '../components/MyNotes'
 import { tagStyle } from '../lib/tags'
 
 export default function MangaDetail({ isAdmin, userId }) {
@@ -24,7 +25,7 @@ export default function MangaDetail({ isAdmin, userId }) {
     async function load() {
       const { data, error } = await supabase
         .from('mangas')
-        .select('*, tags(id, name, hue), manga_ratings(user_id, rating)')
+        .select('*, tags(id, name, hue), manga_ratings(user_id, rating), manga_notes(user_id, body)')
         .eq('id', mangaId)
         .single()
       if (cancelled) return
@@ -121,6 +122,12 @@ export default function MangaDetail({ isAdmin, userId }) {
             </div>
           )}
           {manga.description && <p className="pre">{manga.description}</p>}
+          <MyNotes
+            key={manga.id}
+            mangaId={manga.id}
+            userId={userId}
+            initial={manga.manga_notes.find((n) => n.user_id === userId)?.body ?? null}
+          />
           {isAdmin && (
             <div className="row">
               <Link to={`/admin/manga/${manga.id}`} className="button ghost">Editar</Link>

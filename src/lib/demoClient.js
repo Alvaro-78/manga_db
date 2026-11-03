@@ -5,7 +5,7 @@
 const DEMO_USER = { id: 'demo-user', email: 'demo@mangateca.local' }
 const DEMO_SESSION = { user: DEMO_USER }
 
-const db = { mangas: [], tags: [], manga_tags: [], orders: [], second_hand: [], manga_ratings: [], profiles: [{ id: DEMO_USER.id, email: DEMO_USER.email, role: 'admin' }] }
+const db = { mangas: [], tags: [], manga_tags: [], orders: [], second_hand: [], manga_ratings: [], manga_notes: [], profiles: [{ id: DEMO_USER.id, email: DEMO_USER.email, role: 'admin' }] }
 const files = new Map() // ruta de storage → URL mostrable
 
 // Relaciones entre tablas: [tabla destino, columna de unión, tipo, (tabla intermedia, columna destino)]
@@ -13,6 +13,7 @@ const RELATIONS = {
   mangas: {
     tags: ['tags', 'manga_id', 'through', 'manga_tags', 'tag_id'],
     manga_ratings: ['manga_ratings', 'manga_id', 'many'],
+    manga_notes: ['manga_notes', 'manga_id', 'many'],
   },
 }
 
@@ -175,6 +176,7 @@ function cascadeDelete(table, id) {
   if (table === 'mangas') {
     db.manga_tags = db.manga_tags.filter((r) => r.manga_id !== id)
     db.manga_ratings = db.manga_ratings.filter((r) => r.manga_id !== id)
+    db.manga_notes = db.manga_notes.filter((r) => r.manga_id !== id)
   }
   if (table === 'tags') db.manga_tags = db.manga_tags.filter((r) => r.tag_id !== id)
 }

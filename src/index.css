@@ -345,3 +345,7 @@ a.button.small { padding: 4px 10px; font-size: 0.85rem; }
 :root[data-theme="dark"] .badge.abandonado { background: #7f1d1d; color: #fecaca; }
 :root[data-theme="dark"] .badge.role-admin { background: #f3f4f6; color: #111827; }
 :root[data-theme="dark"] .demo-banner { background: #422006; color: #fde68a; }
+
+/* ---------- Notas personales ---------- */
+.notes h2 { margin: 0; font-size: 1rem; }
+.notes textarea { width: 100%; resize: vertical; }

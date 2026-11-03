@@ -67,8 +67,8 @@ export default function App() {
       <main>
         <Routes>
           {/* Vistas para todos: la biblioteca y la ficha de cada manga */}
-          <Route path="/" element={<Library isAdmin={isAdmin} />} />
-          <Route path="/manga/:mangaId" element={<MangaDetail isAdmin={isAdmin} />} />
+          <Route path="/" element={<Library isAdmin={isAdmin} userId={user.id} />} />
+          <Route path="/manga/:mangaId" element={<MangaDetail isAdmin={isAdmin} userId={user.id} />} />
           {/* Vistas solo para admins; a un usuario normal le llevan a la biblioteca */}
           {isAdmin && (
             <>

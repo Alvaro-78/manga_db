@@ -5,12 +5,15 @@
 const DEMO_USER = { id: 'demo-user', email: 'demo@mangateca.local' }
 const DEMO_SESSION = { user: DEMO_USER }
 
-const db = { mangas: [], tags: [], manga_tags: [], orders: [], second_hand: [], profiles: [{ id: DEMO_USER.id, email: DEMO_USER.email, role: 'admin' }] }
+const db = { mangas: [], tags: [], manga_tags: [], orders: [], second_hand: [], manga_ratings: [], profiles: [{ id: DEMO_USER.id, email: DEMO_USER.email, role: 'admin' }] }
 const files = new Map() // ruta de storage → URL mostrable
 
 // Relaciones entre tablas: [tabla destino, columna de unión, tipo, (tabla intermedia, columna destino)]
 const RELATIONS = {
-  mangas: { tags: ['tags', 'manga_id', 'through', 'manga_tags', 'tag_id'] },
+  mangas: {
+    tags: ['tags', 'manga_id', 'through', 'manga_tags', 'tag_id'],
+    manga_ratings: ['manga_ratings', 'manga_id', 'many'],
+  },
 }
 
 const DEFAULTS = { mangas: { status: 'leyendo', single_volume: false, volume: null, series_complete: false } }
@@ -87,6 +90,7 @@ class Query {
   }
   insert(payload) { this.op = 'insert'; this.payload = payload; return this }
   update(payload) { this.op = 'update'; this.payload = payload; return this }
+  upsert(payload, opts = {}) { this.op = 'upsert'; this.payload = payload; this.conflict = opts.onConflict?.split(',') ?? ['id']; return this }
   delete() { this.op = 'delete'; return this }
   eq(col, value) { this.filters.push([col, value]); return this }
   order(col, opts = {}) { this.orders.push({ col, ascending: opts.ascending ?? true, ref: opts.referencedTable }); return this }
@@ -113,6 +117,14 @@ class Query {
       }))
       rows.push(...list)
       data = list
+    } else if (this.op === 'upsert') {
+      data = (Array.isArray(this.payload) ? this.payload : [this.payload]).map((p) => {
+        const existing = rows.find((r) => this.conflict.every((c) => r[c] === p[c]))
+        if (existing) return Object.assign(existing, p)
+        const row = { ...p }
+        rows.push(row)
+        return row
+      })
     } else if (this.op === 'update') {
       data = rows.filter((r) => this.matches(r))
       data.forEach((r) => Object.assign(r, this.payload))
@@ -147,7 +159,10 @@ class Query {
 
 function cascadeDelete(table, id) {
   db[table] = db[table].filter((r) => r.id !== id)
-  if (table === 'mangas') db.manga_tags = db.manga_tags.filter((r) => r.manga_id !== id)
+  if (table === 'mangas') {
+    db.manga_tags = db.manga_tags.filter((r) => r.manga_id !== id)
+    db.manga_ratings = db.manga_ratings.filter((r) => r.manga_id !== id)
+  }
   if (table === 'tags') db.manga_tags = db.manga_tags.filter((r) => r.tag_id !== id)
 }
 
@@ -206,10 +221,10 @@ function seed() {
   }))
   const samples = [
     { title: 'Viento de Acero', author: 'Akira Morimoto', status: 'leyendo', hue: 10, volume: '1-3', complete: true,
-      tags: ['Seinen', 'Fantasía'],
+      tags: ['Seinen', 'Fantasía'], ratings: [5, 4, 4],
       description: 'Una espadachina errante recorre un imperio en ruinas buscando al hombre que destruyó su aldea.' },
     { title: 'Café Luna', author: 'Yui Hoshino', status: 'terminado', hue: 200, single_volume: true,
-      tags: ['SliceOfLife'], description: 'Historias tranquilas en una cafetería que solo abre de noche.' },
+      tags: ['SliceOfLife'], ratings: [4], description: 'Historias tranquilas en una cafetería que solo abre de noche.' },
     { title: 'Proyecto Órbita', author: 'Kenji Arata', status: 'pendiente', hue: 260, tags: ['Shōnen'], description: null },
     { title: 'Neón Samurái', author: 'Rei Takeda', status: 'pendiente', hue: 320, volume: '1',
       tags: ['Shōnen', 'EdiciónEspecial'], description: null },
@@ -230,5 +245,7 @@ function seed() {
       created_at: new Date(Date.now() - i * 86400000).toISOString(),
     })
     s.tags.forEach((name) => db.manga_tags.push({ id: crypto.randomUUID(), manga_id: mangaId, tag_id: tagId[name] }))
+    ;(s.ratings ?? []).forEach((rating, j) =>
+      db.manga_ratings.push({ manga_id: mangaId, user_id: j === 0 ? DEMO_USER.id : `demo-other-${j}`, rating }))
   })
 }

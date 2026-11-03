@@ -5,21 +5,25 @@ import { signedUrls } from '../lib/images'
 import { byName, setMangaTags } from '../lib/mangas'
 import TagPicker from '../components/TagPicker'
 import { isComplete, volumeLabel } from '../lib/volume'
+import { formatAvg, ratingSummary, setRating } from '../lib/ratings'
+import StarRating from '../components/StarRating'
 
-export default function MangaDetail({ isAdmin }) {
+export default function MangaDetail({ isAdmin, userId }) {
   const { mangaId } = useParams()
   const [manga, setManga] = useState(null)
   const [coverUrl, setCoverUrl] = useState(null)
   const [error, setError] = useState(null)
   const [editingTags, setEditingTags] = useState(null) // ids seleccionados mientras se editan
   const [tagError, setTagError] = useState(null)
+  const [ratingBusy, setRatingBusy] = useState(false)
+  const [ratingError, setRatingError] = useState(null)
 
   useEffect(() => {
     let cancelled = false
     async function load() {
       const { data, error } = await supabase
         .from('mangas')
-        .select('*, tags(id, name)')
+        .select('*, tags(id, name), manga_ratings(user_id, rating)')
         .eq('id', mangaId)
         .single()
       if (cancelled) return
@@ -45,8 +49,29 @@ export default function MangaDetail({ isAdmin }) {
     }
   }
 
+  async function rate(rating) {
+    setRatingBusy(true)
+    setRatingError(null)
+    try {
+      await setRating(manga.id, userId, rating)
+      setManga((m) => ({
+        ...m,
+        manga_ratings: [
+          ...m.manga_ratings.filter((r) => r.user_id !== userId),
+          ...(rating ? [{ user_id: userId, rating }] : []),
+        ],
+      }))
+    } catch (err) {
+      setRatingError(err.message)
+    } finally {
+      setRatingBusy(false)
+    }
+  }
+
   if (error) return <p className="error">{error}</p>
   if (!manga) return <p className="muted">Cargando…</p>
+
+  const { avg, count, mine } = ratingSummary(manga.manga_ratings, userId)
 
   return (
     <>
@@ -63,6 +88,18 @@ export default function MangaDetail({ isAdmin }) {
             <span className="muted small">Colección: {volumeLabel(manga)}</span>
             {isComplete(manga) && <span className="badge serie-completa">Serie Completa</span>}
           </div>
+          <div className="rating-row">
+            <StarRating value={avg} />
+            <span className="muted small">
+              {count ? `${formatAvg(avg)} · ${count} voto${count > 1 ? 's' : ''}` : 'Sin puntuar'}
+            </span>
+          </div>
+          <div className="rating-row">
+            <span className="small">Tu nota:</span>
+            <StarRating value={mine} onChange={rate} disabled={ratingBusy} size="lg" />
+            {mine && <span className="muted small">(pulsa tu nota para quitarla)</span>}
+          </div>
+          {ratingError && <p className="error">{ratingError}</p>}
           {editingTags ? (
             <div className="stack">
               <TagPicker selected={editingTags} onChange={setEditingTags} isAdmin={isAdmin} />

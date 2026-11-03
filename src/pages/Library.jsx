@@ -5,8 +5,10 @@ import { signedUrls } from '../lib/images'
 import { STATUSES } from '../lib/statuses'
 import { isComplete, volumeLabel } from '../lib/volume'
 import { byName } from '../lib/mangas'
+import { formatAvg, ratingSummary } from '../lib/ratings'
+import StarRating from '../components/StarRating'
 
-export default function Library({ isAdmin }) {
+export default function Library({ isAdmin, userId }) {
   const [mangas, setMangas] = useState(null)
   const [covers, setCovers] = useState({})
   const [error, setError] = useState(null)
@@ -19,7 +21,7 @@ export default function Library({ isAdmin }) {
     async function load() {
       const { data, error } = await supabase
         .from('mangas')
-        .select('*, tags(id, name)')
+        .select('*, tags(id, name), manga_ratings(user_id, rating)')
         .order('title')
       if (cancelled) return
       if (error) return setError(error.message)
@@ -97,6 +99,7 @@ export default function Library({ isAdmin }) {
               <div className="tile-body">
                 <strong>{m.title}</strong>
                 <span className="muted small">{volumeLabel(m)}</span>
+                <TileRating ratings={m.manga_ratings} userId={userId} />
                 <div className="tag-list small-tags">
                   <span className={`badge ${m.status}`}>{m.status}</span>
                   {isComplete(m) && <span className="badge serie-completa">Serie Completa</span>}
@@ -108,5 +111,16 @@ export default function Library({ isAdmin }) {
         ))}
       </ul>
     </>
+  )
+}
+
+function TileRating({ ratings, userId }) {
+  const { avg, count, mine } = ratingSummary(ratings, userId)
+  if (!count) return <span className="muted small">Sin puntuar</span>
+  return (
+    <span className="rating-row small" title={mine ? `Tu nota: ${mine}` : undefined}>
+      <StarRating value={avg} size="sm" />
+      <span className="muted">{formatAvg(avg)} ({count})</span>
+    </span>
   )
 }

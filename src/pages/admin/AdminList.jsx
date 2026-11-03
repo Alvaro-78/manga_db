@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { signedUrls } from '../../lib/images'
 import { deleteManga } from '../../lib/mangas'
+import { StatusBadge } from '../../components/MangaBadges'
 
 export default function AdminList({ isAdmin }) {
   const [mangas, setMangas] = useState(null)
@@ -69,7 +70,7 @@ export default function AdminList({ isAdmin }) {
             <div className="grow">
               <strong>{m.title}</strong>
               <div className="muted small">
-                {m.author && `${m.author} · `}<span className={`badge ${m.status}`}>{m.status}</span>
+                {m.author && `${m.author} · `}<StatusBadge status={m.status} />
               </div>
             </div>
             <div className="row actions">

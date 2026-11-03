@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { signedUrls } from '../lib/images'
 import { STATUSES } from '../lib/statuses'
-import { isComplete, volumeLabel } from '../lib/volume'
+import MangaBadges from '../components/MangaBadges'
 import { byName } from '../lib/mangas'
 import { formatAvg, ratingSummary } from '../lib/ratings'
 import StarRating from '../components/StarRating'
@@ -99,11 +99,9 @@ export default function Library({ isAdmin, userId }) {
               )}
               <div className="tile-body">
                 <strong>{m.title}</strong>
-                <span className="muted small">{volumeLabel(m)}</span>
                 <TileRating ratings={m.manga_ratings} userId={userId} />
                 <div className="tag-list small-tags">
-                  <span className={`badge ${m.status}`}>{m.status}</span>
-                  {isComplete(m) && <span className="badge serie-completa">Serie Completa</span>}
+                  <MangaBadges manga={m} />
                   {[...m.tags].sort(byName).map((t) => <span key={t.id} className="tag on colored" style={tagStyle(t)}>{t.name}</span>)}
                 </div>
               </div>

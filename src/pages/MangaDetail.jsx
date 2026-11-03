@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabase'
 import { signedUrls } from '../lib/images'
 import { byName, setMangaTags } from '../lib/mangas'
 import TagPicker from '../components/TagPicker'
-import { isComplete, volumeLabel } from '../lib/volume'
+import MangaBadges from '../components/MangaBadges'
 import { formatAvg, ratingSummary, setRating } from '../lib/ratings'
 import StarRating from '../components/StarRating'
 import MyNotes from '../components/MyNotes'
@@ -86,9 +86,7 @@ export default function MangaDetail({ isAdmin, userId }) {
           <h1>{manga.title}</h1>
           {manga.author && <p className="muted">{manga.author}</p>}
           <div className="row">
-            <span className={`badge ${manga.status}`}>{manga.status}</span>
-            <span className="muted small">Colección: {volumeLabel(manga)}</span>
-            {isComplete(manga) && <span className="badge serie-completa">Serie Completa</span>}
+            <MangaBadges manga={manga} />
           </div>
           <div className="rating-row">
             <StarRating value={avg} />

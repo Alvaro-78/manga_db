@@ -10,6 +10,7 @@ import Orders from './pages/admin/Orders'
 import SecondHand from './pages/admin/SecondHand'
 import AdminNewManga from './pages/admin/AdminNewManga'
 import AdminManga from './pages/admin/AdminManga'
+import ThemeToggle from './components/ThemeToggle'
 
 export default function App() {
   const [session, setSession] = useState(undefined)
@@ -55,6 +56,7 @@ export default function App() {
         <div className="topbar-right">
           <span className="muted small hide-mobile">{user.email}</span>
           {isAdmin && <span className="badge role-admin">Admin</span>}
+          <ThemeToggle />
           <button className="ghost" onClick={() => supabase.auth.signOut()}>Salir</button>
         </div>
       </header>

@@ -2,19 +2,19 @@ import { supabase } from './supabase'
 import { byName, toCamelCase } from './mangas'
 
 export async function loadTags() {
-  const { data, error } = await supabase.from('tags').select('id, name')
+  const { data, error } = await supabase.from('tags').select('id, name, hue')
   if (error) throw error
   return [...data].sort(byName)
 }
 
 export async function createTag(text) {
-  const { data, error } = await supabase.from('tags').insert({ name: toCamelCase(text) }).select('id, name').single()
+  const { data, error } = await supabase.from('tags').insert({ name: toCamelCase(text) }).select('id, name, hue').single()
   if (error) throw friendly(error)
   return data
 }
 
 export async function renameTag(id, text) {
-  const { data, error } = await supabase.from('tags').update({ name: toCamelCase(text) }).eq('id', id).select('id, name').single()
+  const { data, error } = await supabase.from('tags').update({ name: toCamelCase(text) }).eq('id', id).select('id, name, hue').single()
   if (error) throw friendly(error)
   return data
 }
@@ -27,3 +27,6 @@ export async function deleteTag(id) {
 function friendly(error) {
   return new Error(error.code === '23505' ? 'Ya existe un tag con ese nombre.' : error.message)
 }
+
+// Estilo para pintar un tag con su color (clase `colored`).
+export const tagStyle = (tag) => (tag.hue == null ? undefined : { '--tag-hue': tag.hue })

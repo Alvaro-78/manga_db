@@ -7,6 +7,7 @@ import TagPicker from '../components/TagPicker'
 import { isComplete, volumeLabel } from '../lib/volume'
 import { formatAvg, ratingSummary, setRating } from '../lib/ratings'
 import StarRating from '../components/StarRating'
+import { tagStyle } from '../lib/tags'
 
 export default function MangaDetail({ isAdmin, userId }) {
   const { mangaId } = useParams()
@@ -23,7 +24,7 @@ export default function MangaDetail({ isAdmin, userId }) {
     async function load() {
       const { data, error } = await supabase
         .from('mangas')
-        .select('*, tags(id, name), manga_ratings(user_id, rating)')
+        .select('*, tags(id, name, hue), manga_ratings(user_id, rating)')
         .eq('id', mangaId)
         .single()
       if (cancelled) return
@@ -40,7 +41,7 @@ export default function MangaDetail({ isAdmin, userId }) {
     setTagError(null)
     try {
       await setMangaTags(manga.id, editingTags)
-      const { data, error } = await supabase.from('mangas').select('tags(id, name)').eq('id', manga.id).single()
+      const { data, error } = await supabase.from('mangas').select('tags(id, name, hue)').eq('id', manga.id).single()
       if (error) throw error
       setManga((m) => ({ ...m, tags: data.tags }))
       setEditingTags(null)
@@ -111,7 +112,7 @@ export default function MangaDetail({ isAdmin, userId }) {
             </div>
           ) : (
             <div className="tag-list">
-              {[...manga.tags].sort(byName).map((t) => <span key={t.id} className="tag on">{t.name}</span>)}
+              {[...manga.tags].sort(byName).map((t) => <span key={t.id} className="tag on colored" style={tagStyle(t)}>{t.name}</span>)}
               {isAdmin && (
                 <button className="ghost small" onClick={() => setEditingTags(manga.tags.map((t) => t.id))}>
                   {manga.tags.length ? 'Editar tags' : '+ Añadir tags'}

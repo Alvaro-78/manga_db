@@ -16,7 +16,7 @@ export default function AdminManga({ user, isAdmin }) {
   const load = useCallback(async () => {
     const { data, error } = await supabase
       .from('mangas')
-      .select('*, tags(id, name)')
+      .select('*, tags(id, name, hue)')
       .eq('id', mangaId)
       .single()
     if (error) return setError(error.message)

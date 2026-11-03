@@ -9,13 +9,19 @@
   --danger: #b91c1c;
   --ok: #15803d;
   --radius: 10px;
+  /* Colores de los tags: cada tag pone su tono (--tag-hue) y el tema la saturación y luminosidad. */
+  --tag-sat: 70%;
+  --tag-bg-l: 89%;
+  --tag-border-l: 74%;
+  --tag-fg-l: 24%;
   color-scheme: light dark;
   font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
   line-height: 1.5;
 }
 
+/* Modo oscuro: automático según el sistema, salvo que el usuario elija tema (data-theme en <html>). */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --bg: #141312;
     --surface: #1f1e1c;
     --text: #ecebe8;
@@ -25,8 +31,30 @@
     --accent-text: #1a0f05;
     --danger: #f87171;
     --ok: #4ade80;
+    --tag-sat: 45%;
+    --tag-bg-l: 26%;
+    --tag-border-l: 40%;
+    --tag-fg-l: 85%;
+    color-scheme: dark;
   }
 }
+:root[data-theme="dark"] {
+  --bg: #141312;
+  --surface: #1f1e1c;
+  --text: #ecebe8;
+  --muted: #a19d95;
+  --border: #34322e;
+  --accent: #fb923c;
+  --accent-text: #1a0f05;
+  --danger: #f87171;
+  --ok: #4ade80;
+  --tag-sat: 45%;
+  --tag-bg-l: 26%;
+  --tag-border-l: 40%;
+  --tag-fg-l: 85%;
+  color-scheme: dark;
+}
+:root[data-theme="light"] { color-scheme: light; }
 
 * { box-sizing: border-box; }
 
@@ -90,6 +118,11 @@ input.volume-input { width: 9rem; }
 }
 .tag.on { background: var(--accent); border-color: var(--accent); color: var(--accent-text); }
 span.tag { display: inline-block; }
+.tag.colored { border-color: hsl(var(--tag-hue) var(--tag-sat) var(--tag-border-l)); }
+.tag.colored.on {
+  background: hsl(var(--tag-hue) var(--tag-sat) var(--tag-bg-l));
+  color: hsl(var(--tag-hue) var(--tag-sat) var(--tag-fg-l));
+}
 .small-tags { gap: 4px; margin-top: 4px; }
 .small-tags .tag, .small-tags .badge { font-size: 0.7rem; padding: 1px 7px; }
 .tag-new { align-items: center; flex-wrap: nowrap; }
@@ -296,3 +329,19 @@ a.button.small { padding: 4px 10px; font-size: 0.85rem; }
 .stars.interactive button.star { border: none; padding: 0 1px; border-radius: 4px; cursor: pointer; }
 .stars.interactive button.star:disabled { cursor: default; }
 .rating-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+/* Insignias y avisos en modo oscuro */
+@media (prefers-color-scheme: dark) {
+:root:not([data-theme="light"]) .badge.leyendo { background: #1e3a8a; color: #bfdbfe; }
+:root:not([data-theme="light"]) .badge.terminado, :root:not([data-theme="light"]) .badge.serie-completa { background: #14532d; color: #bbf7d0; }
+:root:not([data-theme="light"]) .badge.pendiente { background: #78350f; color: #fde68a; }
+:root:not([data-theme="light"]) .badge.abandonado { background: #7f1d1d; color: #fecaca; }
+:root:not([data-theme="light"]) .badge.role-admin { background: #f3f4f6; color: #111827; }
+:root:not([data-theme="light"]) .demo-banner { background: #422006; color: #fde68a; }
+}
+:root[data-theme="dark"] .badge.leyendo { background: #1e3a8a; color: #bfdbfe; }
+:root[data-theme="dark"] .badge.terminado, :root[data-theme="dark"] .badge.serie-completa { background: #14532d; color: #bbf7d0; }
+:root[data-theme="dark"] .badge.pendiente { background: #78350f; color: #fde68a; }
+:root[data-theme="dark"] .badge.abandonado { background: #7f1d1d; color: #fecaca; }
+:root[data-theme="dark"] .badge.role-admin { background: #f3f4f6; color: #111827; }
+:root[data-theme="dark"] .demo-banner { background: #422006; color: #fde68a; }

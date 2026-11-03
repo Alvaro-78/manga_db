@@ -7,6 +7,7 @@ import { isComplete, volumeLabel } from '../lib/volume'
 import { byName } from '../lib/mangas'
 import { formatAvg, ratingSummary } from '../lib/ratings'
 import StarRating from '../components/StarRating'
+import { tagStyle } from '../lib/tags'
 
 export default function Library({ isAdmin, userId }) {
   const [mangas, setMangas] = useState(null)
@@ -21,7 +22,7 @@ export default function Library({ isAdmin, userId }) {
     async function load() {
       const { data, error } = await supabase
         .from('mangas')
-        .select('*, tags(id, name), manga_ratings(user_id, rating)')
+        .select('*, tags(id, name, hue), manga_ratings(user_id, rating)')
         .order('title')
       if (cancelled) return
       if (error) return setError(error.message)
@@ -103,7 +104,7 @@ export default function Library({ isAdmin, userId }) {
                 <div className="tag-list small-tags">
                   <span className={`badge ${m.status}`}>{m.status}</span>
                   {isComplete(m) && <span className="badge serie-completa">Serie Completa</span>}
-                  {[...m.tags].sort(byName).map((t) => <span key={t.id} className="tag on">{t.name}</span>)}
+                  {[...m.tags].sort(byName).map((t) => <span key={t.id} className="tag on colored" style={tagStyle(t)}>{t.name}</span>)}
                 </div>
               </div>
             </Link>

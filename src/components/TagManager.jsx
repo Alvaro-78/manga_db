@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { byName } from '../lib/mangas'
-import { deleteTag, renameTag } from '../lib/tags'
+import { deleteTag, renameTag, tagStyle } from '../lib/tags'
 import CamelHint from './CamelHint'
 
 // Lista de tags con renombrar y borrar (solo admins). `onChange` recibe la lista nueva.
@@ -59,7 +59,7 @@ export default function TagManager({ tags, onChange, onDeleted = () => {} }) {
               </div>
             ) : (
               <>
-                <span className="grow"><span className="tag on">{t.name}</span></span>
+                <span className="grow"><span className="tag on colored" style={tagStyle(t)}>{t.name}</span></span>
                 <button type="button" className="ghost small" onClick={() => setEditing({ id: t.id, name: t.name })}>Renombrar</button>
                 <button type="button" className="ghost danger small" onClick={() => remove(t)}>Borrar</button>
               </>

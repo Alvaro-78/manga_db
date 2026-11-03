@@ -113,6 +113,7 @@ class Query {
         user_id: DEMO_USER.id,
         created_at: new Date().toISOString(),
         ...DEFAULTS[this.table],
+        ...(this.table === 'tags' && { hue: nextHue() }),
         ...p,
       }))
       rows.push(...list)
@@ -155,6 +156,18 @@ class Query {
     }
     return { data, error: null }
   }
+}
+
+// Igual que private.next_tag_hue(): el centro del mayor hueco entre los tonos usados.
+function nextHue() {
+  const hues = [...new Set(db.tags.map((t) => t.hue))].sort((a, b) => a - b)
+  if (!hues.length) return Math.floor(Math.random() * 360)
+  let best = { hue: hues[0], gap: -1 }
+  hues.forEach((h, i) => {
+    const gap = (i + 1 < hues.length ? hues[i + 1] : hues[0] + 360) - h
+    if (gap > best.gap) best = { hue: h, gap }
+  })
+  return Math.floor(best.hue + best.gap / 2) % 360
 }
 
 function cascadeDelete(table, id) {
@@ -216,7 +229,7 @@ function seed() {
   const tagNames = ['Shōnen', 'Seinen', 'SliceOfLife', 'Fantasía', 'EdiciónEspecial']
   const tagId = Object.fromEntries(tagNames.map((name) => {
     const id = crypto.randomUUID()
-    db.tags.push({ id, name, created_at: new Date().toISOString() })
+    db.tags.push({ id, name, hue: nextHue(), created_at: new Date().toISOString() })
     return [name, id]
   }))
   const samples = [

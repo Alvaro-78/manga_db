@@ -25,7 +25,7 @@ Aplicación web para catalogar tus mangas (ficha, colección, tags, notas y port
 1. Crea una cuenta en <https://supabase.com> y un proyecto nuevo (el plan gratuito sirve).
 2. Abre **SQL Editor → New query**, pega el contenido de [`supabase/schema.sql`](supabase/schema.sql) y pulsa **Run**.
    Esto crea las tablas, las políticas de seguridad y el bucket privado `manga-images`.
-   Después haz lo mismo, en este orden, con [`supabase/roles.sql`](supabase/roles.sql) (roles de usuario) y [`supabase/tags.sql`](supabase/tags.sql) (tags) , [`supabase/orders.sql`](supabase/orders.sql) (pedidos y segunda mano) [`supabase/shared_catalog.sql`](supabase/shared_catalog.sql) (catálogo común, solo admins escriben) y [`supabase/ratings.sql`](supabase/ratings.sql) (puntuación con estrellas).
+   Después haz lo mismo, en este orden, con [`supabase/roles.sql`](supabase/roles.sql) (roles de usuario) y [`supabase/tags.sql`](supabase/tags.sql) (tags) , [`supabase/orders.sql`](supabase/orders.sql) (pedidos y segunda mano) [`supabase/shared_catalog.sql`](supabase/shared_catalog.sql) (catálogo común, solo admins escriben) [`supabase/ratings.sql`](supabase/ratings.sql) (puntuación con estrellas) y [`supabase/tag_colors.sql`](supabase/tag_colors.sql) (un color distinto para cada tag).
 3. *(Opcional)* Si no quieres confirmar el correo al registrarte: **Authentication → Sign In / Providers → Email** y desactiva "Confirm email".
 
 ### 2. Conectar la app

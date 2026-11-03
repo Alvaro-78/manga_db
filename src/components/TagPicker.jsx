@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { byName } from '../lib/mangas'
-import { createTag, loadTags } from '../lib/tags'
+import { createTag, loadTags, tagStyle } from '../lib/tags'
 import CamelHint from './CamelHint'
 import TagManager from './TagManager'
 
@@ -53,7 +53,8 @@ export default function TagPicker({ selected, onChange, isAdmin }) {
               <button
                 key={t.id}
                 type="button"
-                className={`tag ${selected.includes(t.id) ? 'on' : ''}`}
+                className={`tag colored ${selected.includes(t.id) ? 'on' : ''}`}
+                style={tagStyle(t)}
                 aria-pressed={selected.includes(t.id)}
                 onClick={() => toggle(t.id)}
               >
